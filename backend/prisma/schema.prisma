@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String   @id @default(cuid())
+  email    String   @unique
+  name     String?
+  password String
+  role     Role     @default(USER)
+  reserve   Reservation[]
+  Order Order[]
+}
+
+model Admin {
+  id       String   @id @default(cuid())
+  email    String   @unique
+  name     String?
+  password String
+  menu    Menu[]
+}
+
+model Menu {
+  id        String   @id @default(cuid())
+  title     String
+  description   String
+  image     String?
+  author    Admin     @relation(fields: [authorId], references: [id])
+  authorId  String
+  Order Order[]
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  menu   Menu  @relation(fields: [menuId], references: [id])
+  menuId String
+  total     Float
+  status    String?
+}
+
+
+
+
+
+enum Role {
+  USER
+  STAFF
+}
