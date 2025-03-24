@@ -1,27 +1,88 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+
 export default function LoginPage() {
+  const Validation = (userInput) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    let errors = {};
+    if (!userInput.email) {
+      errors.email = "Email is required";
+    } else if (!emailRegex.test(userInput.email)) {
+      errors.email = "Email is invalid";
+    }
+    if (!userInput.password) {
+      errors.password = "Password is required";
+    } else if (userInput.password.length < 6) {
+      errors.password = "Password must be more than 6 characters";
+    }
+    return errors;
+  };
+
   const [userInput, setUserInput] = useState({
     email: "",
     password: "",
+    role: "USER", // Default value, can be "STAFF" or "CUSTOMER"
   });
-  const handleLogin = async (e) => {
+  const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setUserInput({ ...userInput, [e.target.name]: e.target.value });
+  };
+
+  const handleBlur = (e) => {
+    setErrors({ ...errors, [e.target.name]: "" });
+  };
+
+  function handleSubmit(e) {
     e.preventDefault();
-    axios
-      .post("http://localhost:5000/api/users/login", userInput)
-      .then(function (response) {
-        console.log(response);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-    console.log(userInput);
+    const errors = Validation(userInput);
+    setErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      toast.error("Error in form!");
+    } else {
+      toast.success("Validation Passed!");
+    }
+
+    return errors;
+  }
+
+  const login = async (e) => {
+    e.preventDefault();
+    const errors = handleSubmit(e);
+    if (Object.keys(errors).length > 0) return;
+
+    try {
+      const endpoint =
+        userInput.role === "STAFF"
+          ? "http://localhost:3000/api/users/staff/login"
+          : "http://localhost:3000/api/users/customer/login";
+
+      const response = await axios.post(endpoint, userInput);
+
+      toast.success("Logged in successfully");
+      localStorage.setItem("token", response.data.token);
+
+      if (userInput.role === "STAFF") {
+        navigate("/staffhome");
+      } else {
+        navigate("/");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Login failed");
+      console.error(error);
+    }
   };
 
   return (
-    <div className="w-full  flex flex-col bg-[#EFD6A9]  items-center">
+    <div className="min-h-[80vh] flex flex-col bg-white  items-center">
       <div className="card bg-white m-8 shrink-0 shadow-2xl w-[24rem]">
-        <form className="card-body" onSubmit={handleLogin}>
+        <form className="card-body" onSubmit={login}>
           <button className="btn btn-sm btn-square btn-ghost absolute right-2 top-2">
             ✕
           </button>
@@ -31,30 +92,47 @@ export default function LoginPage() {
               <span className="label-text">Email</span>
             </label>
             <input
+              name="email"
               type="email"
-              placeholder="abc@example.com"
-              className="input input-bordered bg-[#D9D9D9]"
               required
+              className="input input-bordered text-black bg-gray-200"
+              placeholder="Username"
+              value={userInput.email}
+              onChange={handleChange}
+              onBlur={handleBlur}
             />
+            {errors.email && <p className="error">{errors.email}</p>}
           </div>
           <div className="form-control">
             <label className="label">
               <span className="label-text">Password</span>
             </label>
             <input
+              name="password"
               type="password"
-              placeholder="********"
-              className="input input-bordered bg-[#D9D9D9]"
+              placeholder="password"
               required
+              className="input input-bordered bg-[#D9D9D9]"
+              value={userInput.password}
+              onChange={handleChange}
+              onBlur={handleBlur}
             />
+            {errors.password && <p className="error">{errors.password}</p>}
+
             <label className="label">
-              <a href="#" className="label-text-alt link link-hover">
+              <a
+                href="/forget-password"
+                className="label-text-alt link link-hover"
+              >
                 Forgot password?
               </a>
             </label>
           </div>
           <div className="form-control mt-6">
-            <button className="btn  bg-[#FFA500] font-bold text-2xl text-white">
+            <button
+              type="submit"
+              className="btn border-[#FFD700] bg-[#bc0030] font-bold text-2xl text-white"
+            >
               Login
             </button>
           </div>

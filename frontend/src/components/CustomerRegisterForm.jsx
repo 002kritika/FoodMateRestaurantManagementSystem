@@ -1,28 +1,78 @@
 import axios from "axios";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function CustomerRegisterForm() {
+  const Validation = (userInput) => {
+    let errors = {};
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const numberRegex = /^(\d{3})[-. ]?(\d{3})[-. ]?(\d{4})$/;
+
+    if (!userInput.email) {
+      errors.email = "Email is required";
+    } else if (!emailRegex.test(userInput.email)) {
+      errors.email = "Email is invalid";
+    }
+
+    if (!userInput.password) {
+      errors.password = "Password is required";
+    } else if (userInput.password.length < 6) {
+      errors.password = "Password must be more than 6 characters";
+    }
+
+    if (!userInput.name) {
+      errors.name = "First Name is required";
+    } else if (userInput.name.length < 3) {
+      errors.tName = " Name must be more than 3 characters";
+    }
+
+    return errors;
+  };
   const [userInput, setUserInput] = useState({
     email: "",
     name: "",
     password: "",
   });
-
-  const handleSignUp = async (e) => {
-    e.preventDefault();
-    axios
-      .post("http://localhost:5000/api/users/customer/register", userInput)
-      .then(function (response) {
-        console.log(response);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-    console.log(userInput);
+  const handleBlur = (e) => {
+    setErrors({ ...errors, [e.target.name]: "" });
   };
+
+  const [errors, setErrors] = useState({});
+  const handleSignup = async (e) => {
+    e.preventDefault();
+
+    const validationErrors = Validation(userInput);
+    setErrors(validationErrors);
+
+    // If there are validation errors, do not proceed
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/users/customer/register",
+        userInput
+      );
+      console.log("Response:", response);
+      toast.success("Registration successful");
+    } catch (error) {
+      console.log("Error response:", error.response); // Log error response
+
+      if (
+        error.response &&
+        error.response.data.message === "Email is already in use."
+      ) {
+        setErrors({ email: "Email is already in use." });
+        toast.error("Email is already in use.");
+      } else {
+        toast.error("Registration failed. Please try again.");
+      }
+    }
+  };
+
   return (
-    <form className="card-body " onSubmit={handleSignUp}>
+    <form className="card-body " onSubmit={handleSignup}>
       {/* <div className="text-2xl font-bold text-center text-black "> */}
       <h1 className="text-2xl font-bold text-center text-black ">
         Customer Register
@@ -44,8 +94,11 @@ export default function CustomerRegisterForm() {
           type="text"
           className="input input-bordered text-black bg-gray-200"
           placeholder="Username"
+          required
           onChange={(e) => setUserInput({ ...userInput, name: e.target.value })}
+          onBlur={handleBlur}
         />
+        {errors.name && <span className="text-danger">{errors.name}</span>}
       </div>
       <div className="form-control">
         <label className="label">
@@ -55,10 +108,13 @@ export default function CustomerRegisterForm() {
           type="text"
           className="input input-bordered text-black bg-gray-200"
           placeholder="abc@example.com"
+          required
           onChange={(e) =>
             setUserInput({ ...userInput, email: e.target.value })
           }
+          onBlur={handleBlur}
         />
+        {errors.email && <span className="text-danger">{errors.email}</span>}
         {/* </label> */}
       </div>
 
@@ -80,17 +136,22 @@ export default function CustomerRegisterForm() {
         </svg> */}
         <input
           type="password"
-          placeholder="********"
+          placeholder="password"
+          required
           className="grow input input-bordered text-black bg-gray-200"
           onChange={(e) =>
             setUserInput({ ...userInput, password: e.target.value })
           }
+          onBlur={handleBlur}
         />
+        {errors.password && (
+          <span className="text-danger">{errors.password}</span>
+        )}
       </div>
 
       <div className="form-control mt-6">
         <button
-          className="btn w- bg-[#FFA500] font-bold text-2xl text-white "
+          className="btn border-[#FFD700] bg-[#bc0030] font-bold text-2xl text-white "
           type="submit"
         >
           Register

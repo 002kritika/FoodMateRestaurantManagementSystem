@@ -4,12 +4,12 @@ import StaffRegisterForm from "./StaffRegisterForm";
 export default function Tab() {
   return (
     // <div className="bg-base-200 min-h-screen flex items-center flex-col">
-    <div role="tablist" className="tabs tabs-lifted w-[24rem] h-[15rem] ">
+    <div role="tablist" className="tabs tabs-lifted w-[24rem] h-[15rem]  ">
       <input
         type="radio"
         name="my_tabs_2"
         role="tab"
-        className="tab font-semibold"
+        className="tab font-semibold  bg-[#bc0030] "
         aria-label="Staff"
       />
       <div role="tabpanel" className="tab-content rounded-box p-4 ">
@@ -20,7 +20,7 @@ export default function Tab() {
         type="radio"
         name="my_tabs_2"
         role="tab"
-        className="tab"
+        className="tab  bg-[#bc0030]"
         aria-label="Customer"
         defaultChecked
       />

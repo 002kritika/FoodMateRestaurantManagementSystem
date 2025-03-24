@@ -26,7 +26,7 @@ export default function StaffRegisterForm() {
     <form className="card-body " onSubmit={handleSignup}>
       {/* <div className="text-2xl font-bold text-center text-black "> */}
       <h1 className="text-2xl font-bold text-center text-black ">
-        Customer Register
+        Staff Register
       </h1>
       {/* </div> */}
       <div className="form-control">
@@ -45,6 +45,7 @@ export default function StaffRegisterForm() {
           type="text"
           className="input input-bordered bg-gray-200"
           placeholder="Username"
+          required
           onChange={(e) => setUserInput({ ...userInput, name: e.target.value })}
         />
       </div>
@@ -56,6 +57,7 @@ export default function StaffRegisterForm() {
           type="text"
           className="input input-bordered bg-gray-200"
           placeholder="abc@example.com"
+          required
           onChange={(e) =>
             setUserInput({ ...userInput, email: e.target.value })
           }
@@ -81,7 +83,8 @@ export default function StaffRegisterForm() {
         </svg> */}
         <input
           type="password"
-          placeholder="********"
+          placeholder="password"
+          required
           className="grow input input-bordered bg-gray-200"
           onChange={(e) =>
             setUserInput({ ...userInput, password: e.target.value })
@@ -91,7 +94,7 @@ export default function StaffRegisterForm() {
 
       <div className="form-control mt-6">
         <button
-          className="btn w- bg-[#FFA500] font-bold text-2xl text-white "
+          className="btn border-[#FFD700] bg-[#bc0030] font-bold text-2xl text-white "
           type="submit"
         >
           Register

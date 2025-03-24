@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
-import logo from "../assets/logo.jpg";
+import logo from "../assets/logo.png";
+import addtocart from "../assets/addtocart.png";
+import { useState } from "react";
 
 export default function Navbar() {
+  const [menu, setMenu] = useState("menu");
   return (
-    <div className="navbar bg-[#FFA500]">
+    <div className="navbar bg-white shadow-lg shadow-gray-700 relative z-10">
       <div className="navbar-start">
         <div className="dropdown">
           <div tabIndex={0} className=" text-black lg:hidden">
@@ -49,12 +52,15 @@ export default function Navbar() {
             </li>
           </ul>
         </div>
-        <img src={logo} className="h-20 w-70  " />
+        <img src={logo} className="h-20 w-70" />
         {/* <a className="btn btn-ghost text-xl">daisyUI</a> */}
       </div>
-      <div className="navbar-center hidden  text-black lg:flex">
+      <div className="navbar-center hidden text-black lg:flex">
         <ul className="menu menu-horizontal text-xl font-bold px-4 gap-4">
-          <li>
+          <li
+            onClick={() => setMenu("home")}
+            className={menu === "home" ? "active" : ""}
+          >
             <Link to="/">Home</Link>
           </li>
           <li>
@@ -80,16 +86,15 @@ export default function Navbar() {
           </li>
         </ul>
       </div>
-      <div className="navbar-end">
-        <Link to="/reservation">
-          <button className="btn border-[#EFD6A9] bg-[#EFD6A9] text-black hover:bg-[#FFA500]   m-2 ">
-            Reservation
-          </button>
-        </Link>
+      <div className="navbar-end gap-2">
+        <div className="relative">
+          <img src={addtocart} alt="search" />
 
+          <div className="absolute min-w-3 min-h-3 bg-[#bc0030] rounded-md top-[-8px] right-[-8px]"></div>
+        </div>
         <Link to="/login">
-          <button className="btn border-[#EFD6A9] bg-[#EFD6A9] text-black hover:bg-[#FFA500]  m-2 ">
-            Login
+          <button className="btn border-[#FFD700] bg-[#bc0030] text-white m-2">
+            login
           </button>
         </Link>
       </div>

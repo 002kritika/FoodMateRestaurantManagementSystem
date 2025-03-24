@@ -3,17 +3,17 @@ export default function Footer() {
     <>
       <footer className="footer bg-base-300 text-base-content p-10">
         <nav>
-          <h6 className="footer-title">Services</h6>
-          <a className="link link-hover">Branding</a>
-          <a className="link link-hover">Design</a>
-          <a className="link link-hover">Marketing</a>
-          <a className="link link-hover">Advertisement</a>
+          <h6 className="footer-title">We're Food Mate</h6>
+          <a className="link link-hover">Reservation</a>
+          <a className="link link-hover">Services</a>
+          <a className="link link-hover">Blogs</a>
+          <a className="link link-hover">About us</a>
         </nav>
         <nav>
-          <h6 className="footer-title">Company</h6>
-          <a className="link link-hover">About us</a>
-          <a className="link link-hover">Contact</a>
-          <a className="link link-hover">Jobs</a>
+          <h6 className="footer-title">Get Help</h6>
+          <a className="link link-hover">FAQs</a>
+          <a className="link link-hover">How to order</a>
+          <a className="link link-hover">How to reserve tabke</a>
           <a className="link link-hover">Press kit</a>
         </nav>
         <nav>
