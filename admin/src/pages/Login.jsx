@@ -10,13 +10,13 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+
     try {
       const response = await axios.post(
         "http://localhost:5000/api/admin/login",
-        {
-          email,
-          password,
-        }
+        { email, password },
+        { withCredentials: true } // Ensure cookies are sent
       );
 
       // Store the token in localStorage
@@ -26,7 +26,10 @@ const Login = () => {
       navigate("/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
-      setError("Login failed. Please check your credentials and try again.");
+      setError(
+        error.response?.data?.message ||
+          "Login failed. Please check your credentials and try again."
+      );
     }
   };
 

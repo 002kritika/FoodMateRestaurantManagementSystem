@@ -19,6 +19,22 @@ const SideNavbar = () => {
           </li>
           <li>
             <Link
+              to="/add/menu"
+              className="block px-4 py-2 text-sm hover:bg-gray-700"
+            >
+              Add Menu
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/menu/list"
+              className="block px-4 py-2 text-sm hover:bg-gray-700"
+            >
+              Menu List
+            </Link>
+          </li>
+          <li>
+            <Link
               to="/menu"
               className="block px-4 py-2 text-sm hover:bg-gray-700"
             >

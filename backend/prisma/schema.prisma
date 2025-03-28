@@ -13,15 +13,15 @@ model User {
   name               String?
   password           String
   role               Role     @default(USER)
-  isVerified         Boolean  @default(false)
-  verificationToken  String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  resetPasswordToken String?
-  resetPasswordTokenExpiry DateTime?
-  menus              Menu[]    // Many-to-many relationship with Menu
+  isVerified        Boolean  @default(false)
+  verificationToken String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  resetPasswordToken String?  
+  resetPasswordTokenExpiry DateTime? 
+  menus              Menu[]    // This is the correct relation field
   orders             Order[]   // Orders placed by the user
-  staff              Staff?    // One-to-one relationship with Staff
+  staff              Staff?
   isAdmin            Boolean  @default(false)  // Admin flag
 }
 
@@ -33,35 +33,34 @@ model Staff {
 }
 
 model Admin {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
+  id       Int   @id @default(autoincrement())
+  email    String   @unique
   name     String?
   password String
 }
+
+
 
 model Order {
   id        Int     @id @default(autoincrement())
   user      User    @relation(fields: [userId], references: [id])
   userId    Int
   menu      Menu    @relation(fields: [menuId], references: [id])
-  menuId    Int     // Changed to Int to match Menu.id
+  menuId    String  // Change to String to match Menu.id type
   total     Float
   status    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Menu {
-  id            Int        @id @default(autoincrement())
+  id            String        @id @default(uuid())
   name          String
   description   String?
   price         Float
   category      MenuCategory
-  imageURL      String?
-  orders        Order[]    // One-to-many relationship with Order
-  users         User[]     // Many-to-many relationship with User
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  available     Boolean       @default(true)
+  imageUrl      String?
+  orders        Order[]       // Add this field to define the inverse relation from Menu to Order
+  users         User[]        // Add this field to define the inverse relation from Menu to User
 }
 
 enum MenuCategory {
@@ -74,5 +73,4 @@ enum MenuCategory {
 enum Role {
   USER
   STAFF
-  ADMIN // Added ADMIN role
 }

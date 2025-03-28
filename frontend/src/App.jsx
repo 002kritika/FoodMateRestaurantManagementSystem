@@ -10,6 +10,7 @@ import Menu from "./components/Menu";
 import EmailVerifyPage from "./pages/EmailVerifyPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ForgotPasswordPage from "./pages/ForgetPasswordPage";
+import CustomerMenu from "./components/CustomerMenu";
 
 export default function App() {
   return (
@@ -23,7 +24,7 @@ export default function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/aboutus" element={<Aboutus />} />
 
-          <Route path="/menu" element={<Menu />} />
+          <Route path="/menu" element={<CustomerMenu />} />
           <Route path="/verify-email/:token" element={<EmailVerifyPage />} />
           <Route
             path="/reset-password/:token"
