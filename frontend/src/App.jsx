@@ -11,6 +11,9 @@ import EmailVerifyPage from "./pages/EmailVerifyPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ForgotPasswordPage from "./pages/ForgetPasswordPage";
 import CustomerMenu from "./components/CustomerMenu";
+import CartPage from "./pages/cart/CartPage";
+import CustomerProfile from "./pages/customer/CustomerProfile";
+import Profile from "./pages/customer/Profile";
 
 export default function App() {
   return (
@@ -31,6 +34,9 @@ export default function App() {
             element={<ResetPasswordPage />}
           />
           <Route path="/forget-password" element={<ForgotPasswordPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/profile" element={<CustomerProfile />} />
+          <Route path="/customer/profile" element={<Profile />} />
         </Route>
       </Routes>
     </div>

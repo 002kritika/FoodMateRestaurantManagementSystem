@@ -3,6 +3,10 @@ import userRoutes from "./routes/userRoutes.js";
 import dotenv from "dotenv";
 import cors from "cors";
 import adminRoutes from "./routes/adminRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+
+profileRoutes;
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import cookieParser from "cookie-parser";
@@ -27,6 +31,8 @@ app.get("/", (req, res) => {
 
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/customer", profileRoutes);
 
 const createDefaultAdmin = async () => {
   try {

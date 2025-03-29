@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Cookies from "js-cookie";
 
 export default function LoginPage() {
   const Validation = (userInput) => {
@@ -63,10 +64,14 @@ export default function LoginPage() {
           ? "http://localhost:3000/api/users/staff/login"
           : "http://localhost:3000/api/users/customer/login";
 
-      const response = await axios.post(endpoint, userInput);
+      const response = await axios.post(endpoint, userInput, {
+        withCredentials: true, // Send cookies with the request
+      });
 
-      toast.success("Logged in successfully");
-      localStorage.setItem("token", response.data.token);
+      // Success - Show success toast message
+      toast.success("Logged in successfully!");
+
+      Cookies.set("token", response.data.token); // Save token in cookies
 
       if (userInput.role === "STAFF") {
         navigate("/staffhome");

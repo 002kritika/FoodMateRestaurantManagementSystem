@@ -34,17 +34,40 @@ const customerLogin = async (req, res) => {
         email,
       },
     });
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
+    // Check if the user exists and compare the password
+    if (user && bcrypt.compareSync(password, user.password)) {
+      // Create a refresh token
+      const refreshToken = jwt.sign(
+        { id: user.id },
+        process.env.REFRESH_TOKEN_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      // Store the refresh token in the database
+      await prisma.refreshToken.create({
+        data: {
+          token: refreshToken,
+          userId: user.id,
+        },
+      });
+
+      // Set the refresh token in an HttpOnly cookie
+      res.cookie("jwt", refreshToken, {
+        httpOnly: true, // Ensures the cookie is not accessible via JavaScript
+        sameSite: "strict", // Helps prevent CSRF attacks
+        maxAge: 24 * 60 * 60 * 1000, // Expiry time (1 day)
+      });
+
+      // Respond with success and user data (you can exclude sensitive info like password)
+      return res.status(200).json({
+        message: "User logged in successfully",
+        user: { id: user.id, email: user.email }, // Exclude sensitive user data if necessary
+        token: refreshToken, // Return the refresh token (optional)
+      });
+    } else {
+      // Invalid credentials
+      return res.status(400).json({ message: "Invalid email or password" });
     }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-    const token = jwt.sign({ user }, "casdkjfqheiru23", { expiresIn: "1h" });
-    return res
-      .status(200)
-      .json({ message: "User logged in successfully", user, token });
   } catch (error) {
     return res
       .status(400)
