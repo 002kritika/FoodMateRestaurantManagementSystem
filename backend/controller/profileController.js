@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+
 export const getCustomerProfile = async (req, res) => {
   try {
     const userId = req.user.id;

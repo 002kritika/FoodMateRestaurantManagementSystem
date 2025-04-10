@@ -39,7 +39,6 @@ const isAdmin = (req) => {
 };
 
 // Create a new menu item (Admin only)
-// Create a new menu item (Admin only)
 const createMenuItem = async (req, res) => {
   if (!req.adminId) {
     return res.status(403).json({ message: "Access denied" });

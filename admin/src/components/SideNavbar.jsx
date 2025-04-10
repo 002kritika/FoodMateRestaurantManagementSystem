@@ -1,64 +1,74 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
+import {
+  FaTachometerAlt,
+  FaPlusCircle,
+  FaList,
+  FaShoppingCart,
+  FaCog,
+  FaSignOutAlt,
+} from "react-icons/fa";
 
 const SideNavbar = () => {
   return (
-    <aside className="bg-gray-800 text-white w-64 fixed h-full">
-      <div className="p-4">
-        <h2 className="text-2xl font-bold">Menu</h2>
+    <aside className="bg-gray-900 text-white w-64 fixed h-full z-50 shadow-lg">
+      {/* Logo & Title */}
+      <div className="p-6 flex items-center space-x-3 border-b border-gray-700">
+        <span className="text-2xl font-bold">🍽️ MyRestaurant</span>
       </div>
+
+      {/* Navigation Menu */}
       <nav className="mt-6">
-        <ul>
+        <ul className="space-y-2">
           <li>
-            <Link
+            <NavLink
               to="/dashboard"
-              className="block px-4 py-2 text-sm hover:bg-gray-700"
+              className="flex items-center gap-3 px-6 py-3 text-sm hover:bg-gray-800 transition-all"
             >
-              Dashboard
-            </Link>
+              <FaTachometerAlt className="w-5 h-5" /> Dashboard
+            </NavLink>
           </li>
           <li>
-            <Link
+            <NavLink
               to="/add/menu"
-              className="block px-4 py-2 text-sm hover:bg-gray-700"
+              className="flex items-center gap-3 px-6 py-3 text-sm hover:bg-gray-800 transition-all"
             >
-              Add Menu
-            </Link>
+              <FaPlusCircle className="w-5 h-5" /> Add Menu
+            </NavLink>
           </li>
           <li>
-            <Link
+            <NavLink
               to="/menu/list"
-              className="block px-4 py-2 text-sm hover:bg-gray-700"
+              className="flex items-center gap-3 px-6 py-3 text-sm hover:bg-gray-800 transition-all"
             >
-              Menu List
-            </Link>
+              <FaList className="w-5 h-5" /> Menu List
+            </NavLink>
           </li>
           <li>
-            <Link
-              to="/menu"
-              className="block px-4 py-2 text-sm hover:bg-gray-700"
-            >
-              Menu Management
-            </Link>
-          </li>
-          <li>
-            <Link
+            <NavLink
               to="/orders"
-              className="block px-4 py-2 text-sm hover:bg-gray-700"
+              className="flex items-center gap-3 px-6 py-3 text-sm hover:bg-gray-800 transition-all"
             >
-              Orders
-            </Link>
+              <FaShoppingCart className="w-5 h-5" /> Orders
+            </NavLink>
           </li>
           <li>
-            <Link
+            <NavLink
               to="/settings"
-              className="block px-4 py-2 text-sm hover:bg-gray-700"
+              className="flex items-center gap-3 px-6 py-3 text-sm hover:bg-gray-800 transition-all"
             >
-              Settings
-            </Link>
+              <FaCog className="w-5 h-5" /> Settings
+            </NavLink>
           </li>
         </ul>
       </nav>
+
+      {/* Logout Button */}
+      <div className="absolute bottom-6 w-full">
+        <button className="flex items-center gap-3 w-full px-6 py-3 text-sm bg-red-600 hover:bg-red-700 transition-all">
+          <FaSignOutAlt className="w-5 h-5" /> Logout
+        </button>
+      </div>
     </aside>
   );
 };

@@ -139,7 +139,7 @@ const MenuList = () => {
                   )}
                 </td>
                 <td className="px-4 py-2">{item.description}</td>
-                <td className="px-4 py-2">${item.price}</td>
+                <td className="px-4 py-2">Rs.{item.price}</td>
                 <td className="px-4 py-2 capitalize">{item.category}</td>
                 <td className="px-4 py-2">
                   <button
@@ -198,7 +198,7 @@ const MenuList = () => {
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">
-                  Price ($)
+                  Price (Rs.)
                 </label>
                 <input
                   type="number"

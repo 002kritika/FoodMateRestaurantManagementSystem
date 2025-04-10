@@ -3,12 +3,13 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
+import OrderForm from "./OrderForm"; // Import the OrderForm component
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const navigate = useNavigate(); // Redirect user if session expires
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCart();
@@ -18,14 +19,7 @@ const CartPage = () => {
     setLoading(true);
     try {
       const token = Cookies.get("token");
-
-      // Debug: Check if token is available
-      console.log("Token received:", token);
-
-      if (!token) {
-        console.error("No token found. Redirecting to login.");
-        throw new Error("Unauthorized: Please log in first.");
-      }
+      if (!token) throw new Error("Unauthorized: Please log in first.");
 
       const response = await axios.get("http://localhost:5000/api/cart", {
         headers: { Authorization: `Bearer ${token}` },
@@ -33,12 +27,12 @@ const CartPage = () => {
       });
 
       setCartItems(response.data);
+      setError(null); // Clear error if successful
     } catch (err) {
-      console.error("Fetch Cart Error:", err.response?.data || err.message);
-      setError(err.response?.data || "Failed to fetch cart");
-      toast.error(err.response?.data || err.message);
-
-      // If session expired, clear token & redirect
+      const errorMessage =
+        err.response?.data?.message || err.message || "Failed to fetch cart";
+      setError(errorMessage);
+      toast.error(errorMessage);
       if (err.response?.status === 401) {
         Cookies.remove("token");
         navigate("/login");
@@ -52,14 +46,6 @@ const CartPage = () => {
     try {
       const token = Cookies.get("token");
 
-      // Debug: Check token before making request
-      console.log("Token for remove request:", token);
-
-      if (!token) {
-        console.error("No token found. Cannot remove item.");
-        throw new Error("Unauthorized: Please log in first.");
-      }
-
       await axios.delete(
         `http://localhost:5000/api/cart/remove/${cartItemId}`,
         {
@@ -69,43 +55,127 @@ const CartPage = () => {
       );
 
       toast.success("Item removed from cart!");
-      fetchCart(); // Refresh cart after removal
+      fetchCart();
     } catch (err) {
-      console.error("Remove Cart Error:", err.response?.data || err.message);
-      toast.error(err.response?.data || "Error removing item.");
+      const errorMessage =
+        err.response?.data?.message || err.message || "Error removing item.";
+      toast.error(errorMessage);
     }
   };
 
-  if (loading) return <p>Loading cart...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
+  const handleQuantityChange = async (cartItemId, newQuantity) => {
+    if (newQuantity < 1) return;
+    try {
+      const token = Cookies.get("token");
+
+      await axios.put(
+        `http://localhost:5000/api/cart/update/${cartItemId}`,
+        { quantity: newQuantity },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
+
+      fetchCart();
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Error updating quantity.";
+      toast.error(errorMessage);
+    }
+  };
+
+  const totalPrice = cartItems.reduce(
+    (sum, item) => sum + item.menu.price * item.quantity,
+    0
+  );
+
+  if (loading) return <p className="text-center mt-10">Loading cart...</p>;
+  if (error)
+    return (
+      <p className="text-center text-red-500 mt-10">
+        {typeof error === "string" ? error : JSON.stringify(error)}
+      </p>
+    );
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
-      <h2 className="text-3xl font-bold mb-4">Shopping Cart</h2>
+    <>
+      <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
+        <h2 className="text-3xl font-bold mb-6">Shopping Cart</h2>
 
-      {cartItems.length === 0 ? (
-        <p>Your cart is empty.</p>
-      ) : (
-        <ul className="bg-white p-4 rounded-lg shadow-md">
-          {cartItems.map((item) => (
-            <li
-              key={item.id}
-              className="flex justify-between items-center mb-3"
-            >
-              <span>
-                {item.menu.name} - {item.quantity}x
-              </span>
-              <button
-                onClick={() => handleRemoveFromCart(item.id)}
-                className="bg-red-500 text-white px-2 py-1 rounded"
+        {cartItems.length === 0 ? (
+          <p className="text-lg">Your cart is empty.</p>
+        ) : (
+          <div className="w-full max-w-2xl bg-white rounded-lg shadow p-6">
+            {cartItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex justify-between items-center border-b py-4"
               >
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+                <div className="flex items-center gap-4">
+                  {item.menu.imageUrl ? (
+                    <img
+                      src={`http://localhost:5000${item.menu.imageUrl}`}
+                      alt={item.menu.name}
+                      className="w-16 h-16 object-cover"
+                    />
+                  ) : (
+                    <span>No Image</span>
+                  )}
+                  <div>
+                    <h4 className="font-semibold text-lg">{item.menu.name}</h4>
+                    <p className="text-gray-500 text-sm">
+                      ${item.menu.price} each
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center border rounded-md">
+                    <button
+                      onClick={() =>
+                        handleQuantityChange(item.id, item.quantity - 1)
+                      }
+                      className="px-3 py-1 text-lg font-bold hover:bg-gray-200"
+                    >
+                      −
+                    </button>
+                    <span className="px-4 py-1">{item.quantity}</span>
+                    <button
+                      onClick={() =>
+                        handleQuantityChange(item.id, item.quantity + 1)
+                      }
+                      className="px-3 py-1 text-lg font-bold hover:bg-gray-200"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => handleRemoveFromCart(item.id)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {cartItems.length > 0 && (
+          <div className="w-full max-w-2xl bg-white p-6 mt-6 rounded-lg shadow">
+            <div className="text-right text-lg font-semibold">
+              <p>Total: ${totalPrice.toFixed(2)}</p>
+            </div>
+            <OrderForm cartItems={cartItems} totalAmount={totalPrice} />{" "}
+            {/* Pass totalPrice here */}
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

@@ -1,65 +1,143 @@
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Create Order
-exports.createOrder = async (req, res) => {
+export const placeOrder = async (req, res) => {
   try {
-    const { userId, items } = req.body;
+    const userId = req.user.id;
+    const { address, paymentMethod, orderType } = req.body;
 
-    const orderItems = await Promise.all(
-      items.map(async (item) => {
-        const menuItem = await prisma.menuItem.findUnique({
-          where: { id: item.menuItemId },
-        });
-        if (!menuItem)
-          throw new Error(`Menu item not found: ${item.menuItemId}`);
-        return { menuItemId: item.menuItemId, quantity: item.quantity };
-      })
+    // Validate input
+    if (!paymentMethod || !orderType) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    if (orderType === "DELIVERY" && !address) {
+      return res
+        .status(400)
+        .json({ message: "Address is required for delivery" });
+    }
+
+    // Fetch customer
+    let customer = await prisma.customer.findUnique({ where: { userId } });
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    // Update address only if delivery
+    if (orderType === "DELIVERY") {
+      customer = await prisma.customer.update({
+        where: { userId },
+        data: { address },
+      });
+    }
+
+    // Get cart items
+    const cartItems = await prisma.cart.findMany({
+      where: { userId },
+      include: { menu: true },
+    });
+
+    if (!cartItems.length) {
+      return res.status(400).json({ message: "Cart is empty" });
+    }
+
+    const deliveryCharge = orderType === "DELIVERY" ? 150 : 0;
+    const totalAmount = cartItems.reduce(
+      (sum, item) => sum + item.quantity * item.menu.price,
+      0
     );
 
-    const total = orderItems.reduce((sum, item) => sum + item.quantity * 10, 0); // Sample calculation
-
+    // Create order and connect user
     const order = await prisma.order.create({
       data: {
-        userId,
-        total,
-        items: { create: orderItems },
+        totalAmount: totalAmount + deliveryCharge,
+        paymentMethod,
+        address: orderType === "DELIVERY" ? address : null,
+        orderType,
+        status: "PENDING",
+        deliveryCharge,
+        user: {
+          connect: { id: userId }, // Connect user by userId
+        },
+        items: {
+          create: cartItems.map((item) => ({
+            menuId: item.menuId,
+            quantity: item.quantity,
+            price: item.menu.price,
+          })),
+        },
       },
-      include: { items: true },
+      include: {
+        items: true,
+      },
     });
 
-    res.status(201).json(order);
+    // Clear the cart after placing the order
+    await prisma.cart.deleteMany({ where: { userId } });
+
+    res.status(201).json({ message: "Order placed successfully", order });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Order Error:", error); // Check terminal logs for error details
+    res.status(500).json({ message: "Failed to place order" });
   }
 };
 
-// Get Orders
-exports.getOrders = async (req, res) => {
+// --------------------- GET ALL ORDERS (ADMIN) ---------------------
+export const getAllOrders = async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
-      include: { items: true, user: true },
+      include: {
+        items: {
+          include: {
+            menu: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
-    res.json(orders);
+
+    res.status(200).json({ orders });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Get Orders Error:", error);
+    res.status(500).json({ message: "Failed to retrieve orders" });
   }
 };
-
-// Update Order Status
-exports.updateOrderStatus = async (req, res) => {
+export const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
 
-    const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
+    const validStatuses = [
+      "PENDING",
+      "CONFIRMED",
+      "PREPARING",
+      "OUT_FOR_DELIVERY",
+      "DELIVERED",
+      "CANCELLED",
+    ];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid order status" });
+    }
+
+    const updated = await prisma.order.update({
+      where: { id: parseInt(orderId) },
       data: { status },
     });
 
-    res.json(updatedOrder);
+    res.status(200).json({ message: "Order status updated", order: updated });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("❌ Update Order Status Error:", error);
+    res.status(500).json({ message: "Failed to update order status" });
   }
 };

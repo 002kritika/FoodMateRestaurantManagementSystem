@@ -13,20 +13,19 @@ model User {
   name               String?
   password           String
   role               Role     @default(USER)
-  isVerified        Boolean  @default(false)
-  verificationToken String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  isVerified         Boolean  @default(false)
+  verificationToken  String?
+  verificationSentAt DateTime? // Timestamp of when the verification email was sent
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
   resetPasswordToken String?  
   resetPasswordTokenExpiry DateTime? 
-  refreshToken RefreshToken[]
-  menus              Menu[]    // This is the correct relation field
+  refreshToken       RefreshToken[]
   orders             Order[]   // Orders placed by the user
   staff              Staff?
   isAdmin            Boolean  @default(false)  // Admin flag
-  cartItems           Cart[]   
-  Customer           Customer[]
-
+  cartItems          Cart[]   
+  customers          Customer[]
 }
 
 model Customer {
@@ -40,12 +39,11 @@ model Customer {
   userId    Int?     @unique
 }
 
-
 model RefreshToken {
-    id     Int    @id @default(autoincrement())
-    token  String @unique
-    userId Int
-    user   User   @relation(fields: [userId], references: [id])
+  id     Int    @id @default(autoincrement())
+  token  String @unique
+  userId Int
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model Staff {
@@ -62,18 +60,6 @@ model Admin {
   password String
 }
 
-
-
-model Order {
-  id        Int     @id @default(autoincrement())
-  user      User    @relation(fields: [userId], references: [id])
-  userId    Int
-  menu      Menu    @relation(fields: [menuId], references: [id])
-  menuId    String  // Change to String to match Menu.id type
-  total     Float
-  status    String?
-}
-
 model Menu {
   id            String        @id @default(uuid())
   name          String
@@ -82,10 +68,8 @@ model Menu {
   category      MenuCategory
   available     Boolean       @default(true)
   imageUrl      String?
-  orders        Order[]       // Add this field to define the inverse relation from Menu to Order
-  users         User[]        // Add this field to define the inverse relation from Menu to User
+  orders        OrderItem[]   // Orders associated with menu items
   cartItems     Cart[]   
-
 }
 
 model Cart {
@@ -98,7 +82,30 @@ model Cart {
   @@unique([userId, menuId]) // Ensures a user can only have one cart entry per menu item
 }
 
+model Order {
+  id              Int      @id @default(autoincrement())
+  userId          Int      // Foreign key
+  totalAmount     Float
+  paymentMethod   String
+  address         String?
+  orderType       String
+  status          String
+  deliveryCharge  Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id])  // Add this line to define the opposite relation
+  items           OrderItem[]
+}
 
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  menuId    String  // Changed productId to menuId for consistency
+  quantity  Int
+  price     Float
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menu      Menu    @relation(fields: [menuId], references: [id])
+}
 
 enum MenuCategory {
   APPETIZER
@@ -110,4 +117,15 @@ enum MenuCategory {
 enum Role {
   USER
   STAFF
+}
+
+enum OrderType {
+  PICKUP
+  DELIVERY
+}
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELED
+  DELIVERED
 }

@@ -14,6 +14,7 @@ import CustomerMenu from "./components/CustomerMenu";
 import CartPage from "./pages/cart/CartPage";
 import CustomerProfile from "./pages/customer/CustomerProfile";
 import Profile from "./pages/customer/Profile";
+// import Checkout from "./pages/placeorder/CHeckout";
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/profile" element={<CustomerProfile />} />
           <Route path="/customer/profile" element={<Profile />} />
+          {/* <Route path="/checkout" element={<Checkout />} /> */}
         </Route>
       </Routes>
     </div>

@@ -5,6 +5,8 @@ import cors from "cors";
 import adminRoutes from "./routes/adminRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 profileRoutes;
 import { PrismaClient } from "@prisma/client";
@@ -30,9 +32,11 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/users", userRoutes);
-app.use("/api/admin", adminRoutes);
+app.use("/api/admin", adminRoutes, orderRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/api/customer", profileRoutes);
+app.use("/api/admin/dashboard", dashboardRoutes);
 
 const createDefaultAdmin = async () => {
   try {

@@ -9,6 +9,15 @@ export const addToCart = async (req, res) => {
   const { menuId, quantity } = req.body;
   const userId = req.user?.id;
 
+  if (!menuId || quantity < 1) {
+    return res
+      .status(400)
+      .json({
+        error:
+          "Invalid input: menuId and quantity must be provided and quantity must be at least 1",
+      });
+  }
+
   try {
     // Check if the menu item exists
     const menuItem = await prisma.menu.findUnique({
@@ -34,6 +43,41 @@ export const addToCart = async (req, res) => {
 };
 
 /**
+ * Update item in cart
+ */
+export const updateCartItem = async (req, res) => {
+  const { cartItemId } = req.params;
+  const { quantity } = req.body;
+  const userId = req.user?.id;
+
+  if (quantity < 1) {
+    return res.status(400).json({ error: "Quantity must be at least 1" });
+  }
+
+  try {
+    // Find the cart item
+    const cartItem = await prisma.cart.findUnique({
+      where: { id: parseInt(cartItemId) },
+    });
+
+    if (!cartItem || cartItem.userId !== userId) {
+      return res.status(404).json({ error: "Cart item not found" });
+    }
+
+    // Update the quantity
+    const updatedCartItem = await prisma.cart.update({
+      where: { id: parseInt(cartItemId) },
+      data: { quantity },
+    });
+
+    res.json(updatedCartItem);
+  } catch (error) {
+    console.error("Error updating cart item:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+/**
  * Get user's cart items
  */
 export const getCart = async (req, res) => {
@@ -44,6 +88,10 @@ export const getCart = async (req, res) => {
       where: { userId },
       include: { menu: true }, // Fetch menu details
     });
+
+    if (cart.length === 0) {
+      return res.status(404).json({ message: "Your cart is empty" });
+    }
 
     res.json(cart);
   } catch (error) {
