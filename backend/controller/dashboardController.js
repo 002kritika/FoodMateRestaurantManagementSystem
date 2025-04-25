@@ -1,56 +1,124 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { PrismaClient } from "@prisma/client"; // ✅ Correct
 
-export const getDashboardStats = async (req, res) => {
+import { startOfDay, endOfDay, subDays, format, startOfMonth } from "date-fns";
+
+export const getDashboardSummary = async (req, res) => {
   try {
-    const totalUsers = await prisma.user.count();
     const totalOrders = await prisma.order.count();
+    const totalDelivered = await prisma.order.count({
+      where: { status: "DELIVERED" },
+    });
+    const totalCanceled = await prisma.order.count({
+      where: { status: "CANCELED" },
+    });
 
-    const totalRevenue = await prisma.order.aggregate({
+    const totalRevenueResult = await prisma.order.aggregate({
       _sum: { totalAmount: true },
     });
 
-    const now = new Date();
-    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
-    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const customerGrowth = await prisma.customer.count();
 
-    const getRevenueAndCount = async (startDate) => {
-      const orders = await prisma.order.findMany({
+    res.json({
+      totalOrders,
+      totalDelivered,
+      totalCanceled,
+      totalRevenue: totalRevenueResult._sum.totalAmount || 0,
+      customerGrowth,
+      revenueShare: totalRevenueResult._sum.totalAmount || 0,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch dashboard summary." });
+  }
+};
+
+export const getDailyOrders = async (req, res) => {
+  try {
+    const today = new Date();
+    const dailyOrders = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const day = subDays(today, i);
+      const count = await prisma.order.count({
         where: {
           createdAt: {
-            gte: startDate,
+            gte: startOfDay(day),
+            lt: endOfDay(day),
           },
         },
       });
-      const total = orders.reduce((sum, order) => sum + order.totalAmount, 0);
-      return {
-        count: orders.length,
-        revenue: total,
-      };
-    };
 
-    const [dayStats, weekStats, monthStats, yearStats] = await Promise.all([
-      getRevenueAndCount(startOfDay),
-      getRevenueAndCount(startOfWeek),
-      getRevenueAndCount(startOfMonth),
-      getRevenueAndCount(startOfYear),
-    ]);
+      dailyOrders.push({
+        day: format(day, "EEE"),
+        count,
+      });
+    }
 
-    res.json({
-      totalUsers,
-      totalOrders,
-      totalRevenue: totalRevenue._sum.totalAmount || 0,
-      stats: {
-        day: dayStats,
-        week: weekStats,
-        month: monthStats,
-        year: yearStats,
-      },
+    res.json(dailyOrders);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch daily orders." });
+  }
+};
+
+export const getMonthlyRevenue = async (req, res) => {
+  try {
+    const currentYear = new Date().getFullYear();
+    const prevYear = currentYear - 1;
+
+    const result = [];
+
+    for (let month = 0; month < 12; month++) {
+      const startThisYear = new Date(currentYear, month, 1);
+      const startNextMonthThisYear = new Date(currentYear, month + 1, 1);
+      const startLastYear = new Date(prevYear, month, 1);
+      const startNextMonthLastYear = new Date(prevYear, month + 1, 1);
+
+      const revenueThisYear = await prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: {
+          createdAt: {
+            gte: startThisYear,
+            lt: startNextMonthThisYear,
+          },
+        },
+      });
+
+      const revenueLastYear = await prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: {
+          createdAt: {
+            gte: startLastYear,
+            lt: startNextMonthLastYear,
+          },
+        },
+      });
+
+      result.push({
+        month: format(startThisYear, "MMM"),
+        revenue2024: revenueLastYear._sum.totalAmount || 0,
+        revenue2025: revenueThisYear._sum.totalAmount || 0,
+      });
+    }
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch monthly revenue." });
+  }
+};
+
+export const getCustomerMap = async (req, res) => {
+  try {
+    const customers = await prisma.customer.groupBy({
+      by: ["address"],
+      _count: true,
     });
-  } catch (error) {
-    console.error("Dashboard Stats Error:", error);
-    res.status(500).json({ message: "Failed to fetch dashboard stats" });
+
+    const data = customers.map((c) => ({
+      region: c.address,
+      count: c._count,
+    }));
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch customer map." });
   }
 };

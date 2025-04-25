@@ -6,12 +6,15 @@ import adminRoutes from "./routes/adminRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
-import dashboardRoutes from "./routes/dashboardRoutes.js";
+import dashboardRoutes from "./routes/DashboardRoutes.js";
+import wishlistRoutes from "./routes/wishlistRoutes.js";
 
-profileRoutes;
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import cookieParser from "cookie-parser";
+import profileRouter from "./routes/profileRoutes.js";
+import orderRouter from "./routes/orderRoutes.js";
+import paymentRouter from "./routes/paymentRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -31,12 +34,14 @@ app.get("/", (req, res) => {
   res.send("Hello World");
 });
 
-app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes, orderRoutes, profileRouter);
 app.use("/api/admin", adminRoutes, orderRoutes);
 app.use("/api/cart", cartRoutes);
-app.use("/api/orders", orderRoutes);
+app.use("/api/orders", orderRouter);
 app.use("/api/customer", profileRoutes);
 app.use("/api/admin/dashboard", dashboardRoutes);
+app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/payment", paymentRouter);
 
 const createDefaultAdmin = async () => {
   try {

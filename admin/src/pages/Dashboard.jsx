@@ -1,201 +1,191 @@
-// src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Bar } from "react-chartjs-2";
+
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
+  PieChart,
+  Pie,
+  Cell,
   Tooltip,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Legend,
-} from "chart.js";
+  BarChart,
+  Bar,
+} from "recharts";
+import Card from "../components/Card";
+import CardContent from "../components/CardContent";
 
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+const COLORS = ["#FF6384", "#36A2EB", "#FFCE56"];
 
-const DashboardPage = () => {
-  const [stats, setStats] = useState(null);
-  const [error, setError] = useState(null);
+export default function Dashboard() {
+  const [summary, setSummary] = useState({});
+  const [dailyOrders, setDailyOrders] = useState([]);
+  const [monthlyRevenue, setMonthlyRevenue] = useState([]);
+  const [customerMap, setCustomerMap] = useState([]);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setError("No authentication token found.");
-        return;
-      }
-
+    // Fetch data from the backend
+    async function fetchData() {
       try {
-        const response = await axios.get(
-          "http://localhost:5000/api/admin/dashboard/stats",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        setStats(response.data);
+        const [resSummary, resDaily, resMonthly, resCustomerMap] =
+          await Promise.all([
+            axios.get("/api/dashboard/summary"),
+            axios.get("/api/dashboard/orders/daily"),
+            axios.get("/api/dashboard/revenue/monthly"),
+            axios.get("/api/dashboard/customers/map"),
+          ]);
+        setSummary(resSummary.data);
+        setDailyOrders(resDaily.data);
+        setMonthlyRevenue(resMonthly.data);
+        setCustomerMap(resCustomerMap.data);
       } catch (error) {
-        setError("Failed to fetch stats. Please try again.");
-        console.error("Error fetching stats:", error);
+        console.error("Dashboard data fetch error:", error);
       }
-    };
+    }
 
-    fetchStats();
+    fetchData();
   }, []);
 
-  // Prepare chart data
-  const chartData = {
-    labels: ["Today", "This Week", "This Month", "This Year"],
-    datasets: [
-      {
-        label: "Revenue",
-        data: stats
-          ? [
-              stats.stats.day.revenue,
-              stats.stats.week.revenue,
-              stats.stats.month.revenue,
-              stats.stats.year.revenue,
-            ]
-          : [0, 0, 0, 0],
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        borderColor: "rgba(75, 192, 192, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    scales: {
-      y: {
-        beginAtZero: true,
-      },
-    },
-  };
-
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-semibold text-center text-gray-800 mb-8">
-        Dashboard
-      </h1>
-      {error ? (
-        <p className="text-red-500 text-center">{error}</p>
-      ) : stats ? (
-        <div className="space-y-8">
-          {/* Stats Section */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="p-6 bg-white rounded-lg shadow-md">
-              <h2 className="text-lg font-semibold text-gray-700">
-                Total Users
-              </h2>
-              <p className="text-2xl font-bold text-gray-900">
-                {stats.totalUsers}
-              </p>
-            </div>
-            <div className="p-6 bg-white rounded-lg shadow-md">
-              <h2 className="text-lg font-semibold text-gray-700">
-                Total Orders
-              </h2>
-              <p className="text-2xl font-bold text-gray-900">
-                {stats.totalOrders}
-              </p>
-            </div>
-            <div className="p-6 bg-white rounded-lg shadow-md">
-              <h2 className="text-lg font-semibold text-gray-700">
-                Total Revenue
-              </h2>
-              <p className="text-2xl font-bold text-gray-900">
-                ${stats.totalRevenue}
-              </p>
-            </div>
-          </div>
+    <div className="p-6 grid gap-6">
+      <h1 className="text-2xl font-bold">Dashboard</h1>
 
-          {/* Recently Added Users */}
-          <div className="bg-white p-6 rounded-lg shadow-md mt-8">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">
-              Recently Added Users
-            </h2>
-            <ul className="space-y-4">
-              {stats.recentUsers && stats.recentUsers.length > 0 ? (
-                stats.recentUsers.map((user) => (
-                  <li
-                    key={user.id}
-                    className="flex justify-between items-center border-b border-gray-200 pb-4"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-800">{user.name}</p>
-                      <p className="text-sm text-gray-600">{user.email}</p>
-                    </div>
-                    <span className="text-sm text-gray-500">
-                      {user.createdAt}
-                    </span>
-                  </li>
-                ))
-              ) : (
-                <p className="text-gray-600">No recently added users.</p>
-              )}
-            </ul>
-          </div>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent>
+            <p>Total Orders</p>
+            <p className="text-xl font-bold">{summary.totalOrders || 0}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <p>Total Delivered</p>
+            <p className="text-xl font-bold">{summary.totalDelivered || 0}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <p>Total Canceled</p>
+            <p className="text-xl font-bold">{summary.totalCanceled || 0}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <p>Total Revenue</p>
+            <p className="text-xl font-bold">${summary.totalRevenue || 0}</p>
+          </CardContent>
+        </Card>
+      </div>
 
-          {/* Recently Added Orders */}
-          <div className="bg-white p-6 rounded-lg shadow-md mt-8">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">
-              Recently Added Orders
-            </h2>
-            <ul className="space-y-4">
-              {stats.recentOrders && stats.recentOrders.length > 0 ? (
-                stats.recentOrders.map((order) => (
-                  <li
-                    key={order.id}
-                    className="flex justify-between items-center border-b border-gray-200 pb-4"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-800">
-                        Order #{order.id}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        User: {order.user}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">${order.total}</p>
-                      <p className="text-xs text-gray-400">{order.createdAt}</p>
-                    </div>
-                  </li>
-                ))
-              ) : (
-                <p className="text-gray-600">No recently added orders.</p>
-              )}
-            </ul>
-          </div>
+      {/* Pie Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent>
+            <p className="font-semibold">Order Stats</p>
+            <PieChart width={200} height={200}>
+              <Pie
+                data={[{ name: "Orders", value: summary.totalOrders || 0 }]}
+                dataKey="value"
+                cx="50%"
+                cy="50%"
+                outerRadius={60}
+              >
+                <Cell fill={COLORS[0]} />
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </CardContent>
+        </Card>
 
-          {/* Revenue Overview Chart */}
-          <div className="mt-8 p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">
-              Revenue Overview
-            </h2>
-            <div className="w-full h-80">
-              <Bar data={chartData} options={chartOptions} />
-            </div>
-          </div>
-        </div>
-      ) : (
-        <p className="text-center text-gray-600">Loading stats...</p>
-      )}
+        <Card>
+          <CardContent>
+            <p className="font-semibold">Customer Growth</p>
+            <PieChart width={200} height={200}>
+              <Pie
+                data={[
+                  { name: "Customers", value: summary.customerGrowth || 0 },
+                ]}
+                dataKey="value"
+                cx="50%"
+                cy="50%"
+                outerRadius={60}
+              >
+                <Cell fill={COLORS[1]} />
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <p className="font-semibold">Revenue Share</p>
+            <PieChart width={200} height={200}>
+              <Pie
+                data={[{ name: "Revenue", value: summary.revenueShare || 0 }]}
+                dataKey="value"
+                cx="50%"
+                cy="50%"
+                outerRadius={60}
+              >
+                <Cell fill={COLORS[2]} />
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Line & Bar Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardContent>
+            <p className="font-semibold">Orders This Week</p>
+            <LineChart width={500} height={250} data={dailyOrders}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="day" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="count" stroke="#8884d8" />
+            </LineChart>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <p className="font-semibold">Customer Map</p>
+            <BarChart width={500} height={250} data={customerMap}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="region" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="count" fill="#82ca9d" />
+            </BarChart>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Full Width Chart */}
+      <Card>
+        <CardContent>
+          <p className="font-semibold">Monthly Revenue Comparison</p>
+          <LineChart width={1000} height={300} data={monthlyRevenue}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="revenue2024" stroke="#8884d8" />
+            <Line type="monotone" dataKey="revenue2025" stroke="#82ca9d" />
+          </LineChart>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default DashboardPage;
+}

@@ -27,8 +27,8 @@ export default function Hero() {
           buds special flavors of food in a pleasant surrounding.
         </p>
 
-        <Link to="/menu">
-          <button className="btn border-[#FFD700] bg-[#bc0030] text-white font-semibold m-2 px-6 py-3 rounded-lg shadow-lg">
+        <Link to="/customer/menu">
+          <button className="btn border-[#FFD700] bg-[#bc0030] text-white hover:bg-[#a80028] transition duration-300 flex items-center gap-2">
             View Menu
           </button>
         </Link>

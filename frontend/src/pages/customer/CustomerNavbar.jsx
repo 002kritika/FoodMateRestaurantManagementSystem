@@ -1,91 +1,149 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { FaBars, FaTimes, FaUserCircle, FaShoppingCart } from "react-icons/fa";
+import { Link, useLocation } from "react-router-dom";
+import { FiShoppingCart, FiUser } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import Cookies from "js-cookie";
+import logo from "../../assets/logo.png";
+import Dropdown from "../../components/Dropdown";
 
-const CustomerNavbar = () => {
+export default function CustomerNavbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [userName, setUserName] = useState("");
+  const location = useLocation();
+
+  const navLinks = [
+    { label: "Home", path: "/customer" },
+    { label: "Menu", path: "/customer/menu" },
+    { label: "About Us", path: "/customer/about" },
+    { label: "Contact", path: "/customer/contact" },
+  ];
+
+  useEffect(() => {
+    const token = Cookies.get("token");
+
+    if (token) {
+      // Fetch cart item count
+      axios
+        .get("http://localhost:5000/api/cart/count", {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        })
+        .then((res) => setCartCount(res.data.count || 0))
+        .catch((err) => console.error("Cart count error", err));
+
+      // Fetch user profile name
+      axios
+        .get("http://localhost:5000/api/users/profile/basic", {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        })
+        .then((res) => setUserName(res.data.name || "User"))
+        .catch((err) => console.error("User fetch error", err));
+    }
+  }, []);
 
   return (
-    <nav className="bg-white shadow-md fixed top-0 left-0 w-full z-50">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo */}
-        {/* <img src="logo" className="" /> */}
-        <Link to="/" className="text-2xl font-bold text-gray-800">
-          FoodMate
-        </Link>
-
-        {/* Desktop Menu */}
-        <div className="hidden md:flex space-x-6">
-          <Link to="/" className="text-gray-700 hover:text-gray-900">
-            Home
-          </Link>
-          <Link to="/menu" className="text-gray-700 hover:text-gray-900">
-            Menu
-          </Link>
-          <Link to="/orders" className="text-gray-700 hover:text-gray-900">
-            Orders
-          </Link>
-          <Link to="/contact" className="text-gray-700 hover:text-gray-900">
-            Contact
-          </Link>
-        </div>
-
-        {/* Icons */}
-        <div className="hidden md:flex items-center space-x-4">
-          <Link to="/cart">
-            <FaShoppingCart className="text-gray-700 w-6 h-6 hover:text-gray-900" />
-          </Link>
-          <Link to="/profile">
-            <FaUserCircle className="text-gray-700 w-7 h-7 hover:text-gray-900" />
-          </Link>
-        </div>
-
-        {/* Mobile Menu Button */}
-        <button
+    <div className="navbar bg-white shadow-lg shadow-gray-700 fixed top-0 left-0 right-0 z-50 px-6 md:px-12 lg:px-20 py-2">
+      {/* Left: Logo & Hamburger */}
+      <div className="navbar-start flex items-center">
+        <div
+          tabIndex={0}
+          className="text-black lg:hidden cursor-pointer mr-2"
           onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden text-gray-700"
         >
-          {isOpen ? (
-            <FaTimes className="w-6 h-6" />
-          ) : (
-            <FaBars className="w-6 h-6" />
-          )}
-        </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            {isOpen ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            )}
+          </svg>
+        </div>
+        <Link to="/">
+          <img src={logo} className="h-16 w-auto" alt="Logo" />
+        </Link>
       </div>
 
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden bg-white border-t shadow-md">
-          <div className="flex flex-col space-y-4 p-4">
-            <Link to="/" className="text-gray-700 hover:text-gray-900">
-              Home
-            </Link>
-            <Link to="/menu" className="text-gray-700 hover:text-gray-900">
-              Menu
-            </Link>
-            <Link to="/orders" className="text-gray-700 hover:text-gray-900">
-              Orders
-            </Link>
-            <Link to="/contact" className="text-gray-700 hover:text-gray-900">
-              Contact
-            </Link>
-            <Link
-              to="/cart"
-              className="text-gray-700 hover:text-gray-900 flex items-center gap-2"
+      {/* Center: Nav Links */}
+      <div className="navbar-center hidden lg:flex">
+        <ul className="menu menu-horizontal px-4 gap-6 text-lg font-semibold text-black">
+          {navLinks.map((link) => (
+            <li
+              key={link.path}
+              className={`hover:text-[#bc0030] transition duration-300 ${
+                location.pathname === link.path
+                  ? "border-b-2 border-[#bc0030]"
+                  : ""
+              }`}
             >
-              <FaShoppingCart className="w-5 h-5" /> Cart
-            </Link>
-            <Link
-              to="/profile"
-              className="text-gray-700 hover:text-gray-900 flex items-center gap-2"
-            >
-              <FaUserCircle className="w-6 h-6" /> Profile
-            </Link>
-          </div>
-        </div>
-      )}
-    </nav>
-  );
-};
+              <Link to={link.path}>{link.label}</Link>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-export default CustomerNavbar;
+      {/* Right: Cart + Profile */}
+      <div className="navbar-end gap-6 items-center pr-2">
+        <Link
+          to="/customer/cart"
+          className="relative text-black hover:text-[#bc0030]"
+        >
+          <FiShoppingCart size={26} />
+          {cartCount > 0 && (
+            <div className="absolute top-[-6px] right-[-6px] bg-[#bc0030] text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
+              {cartCount}
+            </div>
+          )}
+        </Link>
+
+        {/* <Link
+          to=""
+          className="flex items-center gap-2 text-black hover:text-[#bc0030]"
+        > */}
+        <div className="flex items-center gap-2 text-black">
+          <div className="hidden sm:block max-w-[100px] truncate font-medium text-sm text-black">
+            {userName}
+          </div>
+          <Dropdown />
+        </div>
+      </div>
+
+      {/* Mobile Dropdown Menu */}
+      {isOpen && (
+        <ul
+          tabIndex={0}
+          className="menu menu-sm dropdown-content bg-[#D9D9D9] text-black rounded-box mt-3 w-52 p-2 shadow absolute left-4 top-[64px]"
+        >
+          {navLinks.map((link) => (
+            <li key={link.path}>
+              <Link
+                to={link.path}
+                className="hover:bg-[#bc0030] hover:text-white rounded-md px-2"
+                onClick={() => setIsOpen(false)}
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

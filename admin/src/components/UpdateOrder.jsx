@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const AdminOrders = ({ admin }) => {
+const UpdateOrders = ({ admin }) => {
   const [orders, setOrders] = useState([]);
   const [statusUpdate, setStatusUpdate] = useState({});
 
@@ -61,4 +61,4 @@ const AdminOrders = ({ admin }) => {
   );
 };
 
-export default AdminOrders;
+export default UpdateOrders;

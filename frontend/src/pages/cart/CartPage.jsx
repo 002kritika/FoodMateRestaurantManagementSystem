@@ -3,12 +3,13 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import OrderForm from "./OrderForm"; // Import the OrderForm component
+import OrderForm from "./OrderForm";
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showOrderForm, setShowOrderForm] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,7 +28,7 @@ const CartPage = () => {
       });
 
       setCartItems(response.data);
-      setError(null); // Clear error if successful
+      setError(null);
     } catch (err) {
       const errorMessage =
         err.response?.data?.message || err.message || "Failed to fetch cart";
@@ -45,7 +46,6 @@ const CartPage = () => {
   const handleRemoveFromCart = async (cartItemId) => {
     try {
       const token = Cookies.get("token");
-
       await axios.delete(
         `http://localhost:5000/api/cart/remove/${cartItemId}`,
         {
@@ -53,7 +53,6 @@ const CartPage = () => {
           withCredentials: true,
         }
       );
-
       toast.success("Item removed from cart!");
       fetchCart();
     } catch (err) {
@@ -67,7 +66,6 @@ const CartPage = () => {
     if (newQuantity < 1) return;
     try {
       const token = Cookies.get("token");
-
       await axios.put(
         `http://localhost:5000/api/cart/update/${cartItemId}`,
         { quantity: newQuantity },
@@ -76,7 +74,6 @@ const CartPage = () => {
           withCredentials: true,
         }
       );
-
       fetchCart();
     } catch (err) {
       const errorMessage =
@@ -101,14 +98,13 @@ const CartPage = () => {
     );
 
   return (
-    <>
-      <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
-        <h2 className="text-3xl font-bold mb-6">Shopping Cart</h2>
-
-        {cartItems.length === 0 ? (
-          <p className="text-lg">Your cart is empty.</p>
-        ) : (
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
+      {cartItems.length === 0 ? (
+        <p className="text-lg">Your cart is empty.</p>
+      ) : (
+        <>
           <div className="w-full max-w-2xl bg-white rounded-lg shadow p-6">
+            <h2 className="text-3xl font-bold mb-6 text-center">Food Cart</h2>
             {cartItems.map((item) => (
               <div
                 key={item.id}
@@ -127,7 +123,7 @@ const CartPage = () => {
                   <div>
                     <h4 className="font-semibold text-lg">{item.menu.name}</h4>
                     <p className="text-gray-500 text-sm">
-                      ${item.menu.price} each
+                      Rs.{item.menu.price} each
                     </p>
                   </div>
                 </div>
@@ -162,20 +158,39 @@ const CartPage = () => {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-
-        {cartItems.length > 0 && (
-          <div className="w-full max-w-2xl bg-white p-6 mt-6 rounded-lg shadow">
-            <div className="text-right text-lg font-semibold">
-              <p>Total: ${totalPrice.toFixed(2)}</p>
+            <div className="text-right text-lg font-semibold mt-4 mb-4">
+              <p>Total: Rs.{totalPrice.toFixed(2)}</p>
             </div>
-            <OrderForm cartItems={cartItems} totalAmount={totalPrice} />{" "}
-            {/* Pass totalPrice here */}
+
+            <button
+              onClick={() => setShowOrderForm(true)}
+              className="btn border-[#FFD700] bg-[#bc0030] text-white hover:bg-[#a80028] transition duration-300 w-full"
+            >
+              Check Out
+            </button>
           </div>
-        )}
-      </div>
-    </>
+
+          {/* Modal */}
+          {showOrderForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg relative">
+                <button
+                  onClick={() => setShowOrderForm(false)}
+                  className="absolute top-2 right-2 text-gray-500 hover:text-red-500 text-xl font-bold"
+                >
+                  &times;
+                </button>
+                <OrderForm
+                  cartItems={cartItems}
+                  totalAmount={totalPrice}
+                  onClose={() => setShowOrderForm(false)}
+                />
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
   );
 };
 

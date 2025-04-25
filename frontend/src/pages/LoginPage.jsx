@@ -76,7 +76,7 @@ export default function LoginPage() {
       if (userInput.role === "STAFF") {
         navigate("/staffhome");
       } else {
-        navigate("/");
+        navigate("/customer");
       }
     } catch (error) {
       toast.error(error.response?.data?.error || "Login failed");

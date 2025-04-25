@@ -10,12 +10,10 @@ export const addToCart = async (req, res) => {
   const userId = req.user?.id;
 
   if (!menuId || quantity < 1) {
-    return res
-      .status(400)
-      .json({
-        error:
-          "Invalid input: menuId and quantity must be provided and quantity must be at least 1",
-      });
+    return res.status(400).json({
+      error:
+        "Invalid input: menuId and quantity must be provided and quantity must be at least 1",
+    });
   }
 
   try {
@@ -123,6 +121,29 @@ export const removeFromCart = async (req, res) => {
     res.json({ message: "Item removed from cart" });
   } catch (error) {
     console.error("Error removing from cart:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+/**
+ * Get total number of items in user's cart
+ */
+export const getCartCount = async (req, res) => {
+  const userId = req.user?.id;
+
+  try {
+    const cartItems = await prisma.cart.findMany({
+      where: { userId },
+    });
+
+    const totalQuantity = cartItems.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
+
+    res.json({ count: totalQuantity });
+  } catch (error) {
+    console.error("Error getting cart count:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };

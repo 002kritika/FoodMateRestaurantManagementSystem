@@ -150,6 +150,28 @@ const deleteMenuItem = async (req, res) => {
       .json({ message: "Error deleting menu item", error: error.message });
   }
 };
+// // Controller function to get popular menu items
+// const getPopularMenuItems = async (req, res) => {
+//   const limit = parseInt(req.query.limit) || 10;
+
+//   try {
+//     const popularItems = await prisma.menu.findMany({
+//       where: {
+//         isPopular: true,
+//         isAvailable: true, // Optional: fetch only available items
+//       },
+//       take: limit,
+//       orderBy: {
+//         createdAt: "desc", // Optional: most recent first
+//       },
+//     });
+
+//     res.json(popularItems);
+//   } catch (error) {
+//     console.error("Error fetching popular menu items:", error);
+//     res.status(500).json({ message: "Failed to fetch popular menu items." });
+//   }
+// };
 
 export {
   createMenuItem,

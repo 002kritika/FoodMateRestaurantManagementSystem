@@ -1,6 +1,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import SideNavbar from "../components/SideNavbar";
+import Header from "../components/Header"; // <-- Import the Header
 
 const DashboardLayout = () => {
   return (
@@ -8,9 +9,15 @@ const DashboardLayout = () => {
       {/* Side Navbar */}
       <SideNavbar />
 
-      {/* Main Content */}
-      <div className="flex-1 p-6 ml-64">
-        <Outlet />
+      {/* Main Content Area */}
+      <div className="flex-1 ml-64 flex flex-col">
+        {/* Header */}
+        <Header />
+
+        {/* Page Content */}
+        <div className=" flex-1">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

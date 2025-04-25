@@ -141,3 +141,85 @@ export const updateOrderStatus = async (req, res) => {
     res.status(500).json({ message: "Failed to update order status" });
   }
 };
+export const getCustomerOrders = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const orders = await prisma.order.findMany({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            menu: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    res.status(200).json({ orders });
+  } catch (error) {
+    console.error("Customer Order Fetch Error:", error);
+    res.status(500).json({ message: "Failed to fetch customer orders" });
+  }
+};
+export const getLatestOrders = async (req, res) => {
+  try {
+    const orders = await prisma.order.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: {
+        id: true,
+        customerName: true,
+        totalAmount: true,
+        createdAt: true,
+        status: true,
+      },
+    });
+    res.json(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch latest orders" });
+  }
+};
+export const cancelOrder = async (req, res) => {
+  const { orderId } = req.params;
+  const userId = req.user?.id;
+
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: parseInt(orderId) },
+    });
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.userId !== userId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    // Check if the order type is "PICKUP"
+    if (order.orderType !== "PICKUP") {
+      return res
+        .status(400)
+        .json({ message: "Only pickup orders can be canceled" });
+    }
+
+    if (order.status === "CANCELED") {
+      return res.status(400).json({ message: "Order already canceled" });
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: parseInt(orderId) },
+      data: { status: "CANCELED" },
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Order canceled", order: updatedOrder });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};

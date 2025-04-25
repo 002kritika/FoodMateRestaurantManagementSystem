@@ -14,7 +14,7 @@ const SideNavbar = () => {
     <aside className="bg-gray-900 text-white w-64 fixed h-full z-50 shadow-lg">
       {/* Logo & Title */}
       <div className="p-6 flex items-center space-x-3 border-b border-gray-700">
-        <span className="text-2xl font-bold">🍽️ MyRestaurant</span>
+        <span className="text-2xl font-bold">🍽️ Food-Mate</span>
       </div>
 
       {/* Navigation Menu */}

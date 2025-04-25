@@ -1,12 +1,14 @@
+import AboutUs from "../../components/AboutUs";
 import Hero from "../../components/Hero";
-import Story from "../../components/Story";
+import TopMenu from "./TopMenu";
 
 export default function CustomerHome() {
   return (
     <>
       <div className="">
         <Hero />
-        <Story />
+        <AboutUs />
+        <TopMenu />
       </div>
     </>
   );
