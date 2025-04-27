@@ -21,7 +21,7 @@ const Profile = () => {
       if (!token) throw new Error("Unauthorized: Please log in first.");
 
       const response = await axios.get(
-        "http://localhost:5000/api/customer/profile",
+        "http://localhost:3000/api/customer/profile",
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
@@ -51,13 +51,13 @@ const Profile = () => {
       if (!token) throw new Error("Unauthorized: Please log in first.");
 
       if (profile) {
-        await axios.put("http://localhost:5000/api/customer/profile", data, {
+        await axios.put("http://localhost:3000/api/customer/profile", data, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         });
         toast.success("Profile updated successfully!");
       } else {
-        await axios.post("http://localhost:5000/api/customer/profile", data, {
+        await axios.post("http://localhost:3000/api/customer/profile", data, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         });

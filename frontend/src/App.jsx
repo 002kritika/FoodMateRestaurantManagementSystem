@@ -16,9 +16,12 @@ import CustomerLayout from "./layouts/CustomerLayout";
 import OrderForm from "./pages/cart/OrderForm";
 import CustomerOrderList from "./pages/cart/CustomerOrderList";
 import Contact from "./components/Contact";
-import Payment from "./pages/payment/payment";
+import Payment from "./pages/payment/Payment";
 import Failure from "./pages/payment/Failure";
 import Success from "./pages/payment/Success";
+import OrderDetails from "./pages/cart/OrderDetails";
+import ReservationList from "./components/ReservationList";
+import ReserveNow from "./pages/customer/ReserveNow";
 
 export default function App() {
   return (
@@ -49,6 +52,9 @@ export default function App() {
           <Route path="payment" element={<Payment />} />
           <Route path="payment/failure" element={<Failure />} />
           <Route path="payment/success" element={<Success />} />
+          <Route path="my-order" element={<OrderDetails />} />
+          <Route path="/customer/reserve" element={<ReserveNow />} />
+          <Route path="/customer/reserve/get" element={<ReservationList />} />
         </Route>
 
         {/* Staff-only route */}

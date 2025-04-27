@@ -28,6 +28,8 @@ const Success = () => {
         if (res.data && res.data.order) {
           setPaymentStatus("✅ Payment successful!");
           setOrderDetails(res.data.order);
+
+          localStorage.removeItem("cart");
         } else {
           throw new Error("Order details not found");
         }
@@ -46,6 +48,23 @@ const Success = () => {
       setLoading(false);
     }
   }, [transactionUuid, orderId]);
+
+  if (!orderDetails) {
+    return null; // or show a fallback if needed
+  }
+
+  // Calculate correct total based on order type
+  const calculateTotalAmount = () => {
+    const subtotal = orderDetails.subtotal || 0;
+    const deliveryCharge =
+      orderDetails.orderType === "DELIVERY"
+        ? orderDetails.deliveryCharge || 0
+        : 0;
+
+    return subtotal + deliveryCharge;
+  };
+
+  const correctedTotalAmount = calculateTotalAmount();
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
@@ -96,20 +115,32 @@ const Success = () => {
                 </p>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-md shadow-sm">
+              <div className="bg-gray-50 p-4 rounded-md shadow-sm space-y-2">
                 <p className="text-gray-600">
-                  <strong>Total Amount:</strong> Rs.{orderDetails.totalAmount}
+                  <strong>Order Type:</strong> {orderDetails.orderType}
                 </p>
+
                 <p className="text-gray-600">
-                  <strong>Delivery Charge:</strong> Rs.
-                  {orderDetails.deliveryCharge}
+                  <strong>Subtotal:</strong> Rs.{orderDetails.subtotal}
+                </p>
+
+                {/* Show delivery charge only if delivery order */}
+                {orderDetails.orderType === "DELIVERY" && (
+                  <p className="text-gray-600">
+                    <strong>Delivery Charge:</strong> Rs.
+                    {orderDetails.deliveryCharge}
+                  </p>
+                )}
+
+                <p className="text-gray-800 font-bold">
+                  <strong>Total Amount:</strong> Rs.{correctedTotalAmount}
                 </p>
               </div>
             </div>
 
             <div className="mt-8 text-center">
               <button
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/customer")}
                 className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition duration-300"
               >
                 Back to Home

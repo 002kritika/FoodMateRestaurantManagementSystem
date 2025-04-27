@@ -10,7 +10,7 @@ import {
   adminRegister,
   resetPassword,
 } from "../controller/userController.js";
-import { getMenuItems } from "../controller/menuController.js";
+import { getMenuItems, getTopMenuItems } from "../controller/menuController.js";
 import { getCustomerOrders } from "../controller/orderController.js";
 
 const userRouter = express.Router();
@@ -26,5 +26,6 @@ userRouter.post("/admin/register", adminRegister);
 userRouter.post("/reset-password/:token", resetPassword);
 userRouter.get("/menu", getMenuItems);
 userRouter.get("/orders", getCustomerOrders);
+userRouter.get("/menu/top", getTopMenuItems);
 
 export default userRouter;

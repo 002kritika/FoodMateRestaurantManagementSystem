@@ -12,7 +12,7 @@ const DashboardLayout = () => {
       {/* Main Content Area */}
       <div className="flex-1 ml-64 flex flex-col">
         {/* Header */}
-        <Header />
+        {/* <Header /> */}
 
         {/* Page Content */}
         <div className=" flex-1">

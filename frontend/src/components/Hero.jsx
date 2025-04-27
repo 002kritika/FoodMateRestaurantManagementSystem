@@ -26,12 +26,18 @@ export default function Hero() {
           A multi-cuisine restaurant in the heart of Pokhara offering your taste
           buds special flavors of food in a pleasant surrounding.
         </p>
-
-        <Link to="/customer/menu">
-          <button className="btn border-[#FFD700] bg-[#bc0030] text-white hover:bg-[#a80028] transition duration-300 flex items-center gap-2">
-            View Menu
-          </button>
-        </Link>
+        <div className="flex gap-3">
+          <Link to="/customer/menu">
+            <button className="btn border-[#FFD700] bg-[#bc0030] text-white hover:bg-[#a80028] transition duration-300 flex items-center gap-2">
+              View Menu
+            </button>
+          </Link>
+          <Link to="/customer/reserve">
+            <button className="btn border-[#FFD700] bg-[#bc0030] text-white hover:bg-[#a80028] transition duration-300 flex items-center gap-2">
+              Book table
+            </button>
+          </Link>
+        </div>
       </div>
     </div>
   );

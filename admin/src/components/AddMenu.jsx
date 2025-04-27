@@ -48,8 +48,6 @@ const AddMenu = () => {
     }
 
     try {
-      console.log("Sending data...", formData); // Debugging
-
       const response = await axios.post(
         "http://localhost:5000/api/admin/menu",
         formData,
@@ -72,10 +70,24 @@ const AddMenu = () => {
     }
   };
 
+  // Handle cancel functionality
+  const handleCancel = () => {
+    setName("");
+    setDescription("");
+    setPrice("");
+    setCategory("");
+    setImage(null);
+    setError("");
+    setSuccess("");
+    navigate("/menu"); // Redirect to the menu page
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-96">
-        <h1 className="text-2xl font-bold mb-6 text-center">Add Menu Item</h1>
+      <div className="bg-white p-8 rounded-lg shadow-lg w-1/2 max-w-3xl">
+        <h1 className="text-3xl font-bold mb-6 text-center text-blue-600">
+          Add Menu Item
+        </h1>
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
         {success && <p className="text-green-500 mb-4">{success}</p>}
@@ -91,7 +103,7 @@ const AddMenu = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400"
             />
           </div>
 
@@ -105,7 +117,7 @@ const AddMenu = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400"
             />
           </div>
 
@@ -121,7 +133,7 @@ const AddMenu = () => {
               required
               min="0"
               step="0.01"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400"
             />
           </div>
 
@@ -133,7 +145,7 @@ const AddMenu = () => {
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400"
             >
               <option value="">Select category</option>
               <option value="APPETIZER">Appetizer</option>
@@ -151,16 +163,26 @@ const AddMenu = () => {
               type="file"
               onChange={handleImageChange} // Store the selected file
               accept="image/*" // Restrict to image files only
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400"
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            Add Menu Item
-          </button>
+          <div className="flex space-x-4">
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Add Menu Item
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="w-full bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -1,9 +1,8 @@
-// components/OrderForm.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Cookies from "js-cookie";
-import Payment from "../payment/payment";
+import Payment from "../payment/Payment";
 
 const OrderForm = ({ cartItems, totalAmount }) => {
   const [address, setAddress] = useState("");
@@ -92,6 +91,12 @@ const OrderForm = ({ cartItems, totalAmount }) => {
         );
 
         toast.success("Order placed successfully!");
+
+        // Clear the cart data from localStorage or state after placing the order
+        localStorage.removeItem("cart"); // Clear from localStorage
+
+        // Optionally reset cart state (if cartItems are in component state)
+        // setCartItems([]); // If you have cartItems in the state, reset them
 
         if (
           paymentMethod.toLowerCase() === "esewa" &&

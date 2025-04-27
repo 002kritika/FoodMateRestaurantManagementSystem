@@ -119,9 +119,8 @@ export const updateOrderStatus = async (req, res) => {
 
     const validStatuses = [
       "PENDING",
-      "CONFIRMED",
       "PREPARING",
-      "OUT_FOR_DELIVERY",
+      "COMPLETED",
       "DELIVERED",
       "CANCELLED",
     ];
@@ -221,5 +220,27 @@ export const cancelOrder = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server error" });
+  }
+};
+export const getUserOrders = async (req, res) => {
+  try {
+    const userId = req.user.id; // directly from middleware
+
+    const orders = await prisma.order.findMany({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            menu: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.status(200).json({ orders });
+  } catch (error) {
+    console.error("Error fetching user orders:", error);
+    res.status(500).json({ message: "Failed to fetch orders" });
   }
 };

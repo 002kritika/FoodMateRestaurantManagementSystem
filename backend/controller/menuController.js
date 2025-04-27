@@ -39,6 +39,7 @@ const isAdmin = (req) => {
 };
 
 // Create a new menu item (Admin only)
+// Create a new menu item (Admin only)
 const createMenuItem = async (req, res) => {
   if (!req.adminId) {
     return res.status(403).json({ message: "Access denied" });
@@ -121,10 +122,12 @@ const updateMenuItem = async (req, res) => {
   });
 };
 
-// Get all menu items
 const getMenuItems = async (req, res) => {
   try {
-    const menuItems = await prisma.menu.findMany();
+    const { category } = req.query;
+    const menuItems = await prisma.menu.findMany({
+      where: category && category !== "ALL" ? { category } : undefined,
+    });
     res.status(200).json(menuItems);
   } catch (error) {
     res
@@ -133,47 +136,48 @@ const getMenuItems = async (req, res) => {
   }
 };
 
-// Delete a menu item (Admin only)
+// deleteMenuItem controller
 const deleteMenuItem = async (req, res) => {
-  if (!req.adminId) {
-    return res.status(403).json({ message: "Access denied" });
-  }
-
   const { id } = req.params;
 
   try {
-    await prisma.menu.delete({ where: { id } });
-    res.json({ message: "Menu item deleted" });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error deleting menu item", error: error.message });
+    // First, delete related entries
+    await prisma.cart.deleteMany({ where: { menuId: id } });
+    await prisma.wishlist.deleteMany({ where: { menuId: id } });
+    await prisma.orderItem.deleteMany({ where: { menuId: id } });
+
+    // Then delete the menu item
+    await prisma.menu.delete({
+      where: { id },
+    });
+
+    res.status(200).json({ message: "Menu item deleted successfully." });
+  } catch (err) {
+    console.error("Delete Error:", err);
+    res.status(500).json({ message: "Failed to delete menu item." });
   }
 };
-// // Controller function to get popular menu items
-// const getPopularMenuItems = async (req, res) => {
-//   const limit = parseInt(req.query.limit) || 10;
 
-//   try {
-//     const popularItems = await prisma.menu.findMany({
-//       where: {
-//         isPopular: true,
-//         isAvailable: true, // Optional: fetch only available items
-//       },
-//       take: limit,
-//       orderBy: {
-//         createdAt: "desc", // Optional: most recent first
-//       },
-//     });
+// Controller to get the top menu items
+const getTopMenuItems = async (req, res) => {
+  try {
+    // Fetch top menu items from the database
+    const topMenuItems = await prisma.menu.findMany({
+      where: { available: true }, // Filter for items that are available
+      orderBy: { price: "desc" }, // Sort items by price in descending order
+      take: 15, // Limit to top 5 items (you can adjust this)
+    });
 
-//     res.json(popularItems);
-//   } catch (error) {
-//     console.error("Error fetching popular menu items:", error);
-//     res.status(500).json({ message: "Failed to fetch popular menu items." });
-//   }
-// };
+    // Return the list of top menu items
+    res.status(200).json(topMenuItems);
+  } catch (error) {
+    console.error("Error fetching top menu items:", error);
+    res.status(500).json({ message: "Error fetching top menu items" });
+  }
+};
 
 export {
+  getTopMenuItems,
   createMenuItem,
   getMenuItems,
   updateMenuItem,

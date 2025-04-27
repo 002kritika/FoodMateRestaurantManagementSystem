@@ -1,191 +1,218 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-
 import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
   LineChart,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
+  Tooltip,
   Legend,
   BarChart,
   Bar,
 } from "recharts";
-import Card from "../components/Card";
-import CardContent from "../components/CardContent";
 
-const COLORS = ["#FF6384", "#36A2EB", "#FFCE56"];
-
-export default function Dashboard() {
+const Dashboard = () => {
   const [summary, setSummary] = useState({});
   const [dailyOrders, setDailyOrders] = useState([]);
   const [monthlyRevenue, setMonthlyRevenue] = useState([]);
   const [customerMap, setCustomerMap] = useState([]);
+  const [newActivity, setNewActivity] = useState({
+    newUsers: [],
+    newOrders: [],
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const token = localStorage.getItem("token");
+
+  const axiosInstance = axios.create({
+    baseURL: "http://localhost:5000/api",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const [resSummary, resDaily, resMonthly, resCustomerMap, resActivity] =
+        await Promise.all([
+          axiosInstance.get("/admin/dashboard/summary"),
+          axiosInstance.get("/admin/dashboard/orders/daily"),
+          axiosInstance.get("/admin/dashboard/revenue/monthly"),
+          axiosInstance.get("/admin/dashboard/customers/map"),
+          axiosInstance.get("/admin/dashboard/new-activity"),
+        ]);
+
+      setSummary(resSummary.data);
+      setDailyOrders(resDaily.data);
+      setMonthlyRevenue(resMonthly.data);
+      setCustomerMap(resCustomerMap.data);
+      setNewActivity(resActivity.data);
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+      setError("Failed to load dashboard data. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Fetch data from the backend
-    async function fetchData() {
-      try {
-        const [resSummary, resDaily, resMonthly, resCustomerMap] =
-          await Promise.all([
-            axios.get("/api/dashboard/summary"),
-            axios.get("/api/dashboard/orders/daily"),
-            axios.get("/api/dashboard/revenue/monthly"),
-            axios.get("/api/dashboard/customers/map"),
-          ]);
-        setSummary(resSummary.data);
-        setDailyOrders(resDaily.data);
-        setMonthlyRevenue(resMonthly.data);
-        setCustomerMap(resCustomerMap.data);
-      } catch (error) {
-        console.error("Dashboard data fetch error:", error);
-      }
-    }
-
     fetchData();
   }, []);
 
+  if (loading)
+    return (
+      <p className="text-center p-4 text-blue-500">
+        Loading data, please wait...
+      </p>
+    );
+  if (error) return <p className="text-center p-4 text-red-500">{error}</p>;
+
   return (
-    <div className="p-6 grid gap-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-
+    <div className="p-6 min-h-screen bg-gray-50">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent>
-            <p>Total Orders</p>
-            <p className="text-xl font-bold">{summary.totalOrders || 0}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <p>Total Delivered</p>
-            <p className="text-xl font-bold">{summary.totalDelivered || 0}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <p>Total Canceled</p>
-            <p className="text-xl font-bold">{summary.totalCanceled || 0}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <p>Total Revenue</p>
-            <p className="text-xl font-bold">${summary.totalRevenue || 0}</p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {[
+          { label: "Total Orders", value: summary.totalOrders },
+          { label: "Total Users", value: summary.totalUsers },
+          { label: "Total Menu", value: summary.totalMenu },
+          { label: "Total Revenue", value: `Rs.${summary.totalRevenue}` },
+        ].map((item, index) => (
+          <div
+            key={index}
+            className="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300"
+          >
+            <p className="text-gray-500">{item.label}</p>
+            <p className="text-3xl font-bold text-blue-600 mt-2">
+              {item.value || 0}
+            </p>
+          </div>
+        ))}
       </div>
 
-      {/* Pie Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent>
-            <p className="font-semibold">Order Stats</p>
-            <PieChart width={200} height={200}>
-              <Pie
-                data={[{ name: "Orders", value: summary.totalOrders || 0 }]}
-                dataKey="value"
-                cx="50%"
-                cy="50%"
-                outerRadius={60}
-              >
-                <Cell fill={COLORS[0]} />
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent>
-            <p className="font-semibold">Customer Growth</p>
-            <PieChart width={200} height={200}>
-              <Pie
-                data={[
-                  { name: "Customers", value: summary.customerGrowth || 0 },
-                ]}
-                dataKey="value"
-                cx="50%"
-                cy="50%"
-                outerRadius={60}
-              >
-                <Cell fill={COLORS[1]} />
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent>
-            <p className="font-semibold">Revenue Share</p>
-            <PieChart width={200} height={200}>
-              <Pie
-                data={[{ name: "Revenue", value: summary.revenueShare || 0 }]}
-                dataKey="value"
-                cx="50%"
-                cy="50%"
-                outerRadius={60}
-              >
-                <Cell fill={COLORS[2]} />
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </CardContent>
-        </Card>
+      {/* New Users Table */}
+      <div className="bg-white rounded-2xl shadow-md p-6 mb-8">
+        <h2 className="text-2xl font-semibold text-blue-700 mb-4">New Users</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border border-gray-200">
+            <thead className="bg-blue-50">
+              <tr>
+                <th className="p-3 text-left text-blue-700 border-b">Name</th>
+                <th className="p-3 text-left text-blue-700 border-b">Email</th>
+                <th className="p-3 text-left text-blue-700 border-b">Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {newActivity.newUsers.map((user) => (
+                <tr
+                  key={user.id}
+                  className="hover:bg-blue-50 transition-colors duration-200"
+                >
+                  <td className="p-3 border-b">{user.name}</td>
+                  <td className="p-3 border-b">{user.email}</td>
+                  <td className="p-3 border-b">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Line & Bar Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
-          <CardContent>
-            <p className="font-semibold">Orders This Week</p>
-            <LineChart width={500} height={250} data={dailyOrders}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="count" stroke="#8884d8" />
-            </LineChart>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent>
-            <p className="font-semibold">Customer Map</p>
-            <BarChart width={500} height={250} data={customerMap}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="region" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="count" fill="#82ca9d" />
-            </BarChart>
-          </CardContent>
-        </Card>
+      {/* New Orders Table */}
+      <div className="bg-white rounded-2xl shadow-md p-6 mb-8">
+        <h2 className="text-2xl font-semibold text-blue-700 mb-4">
+          New Orders
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border border-gray-200">
+            <thead className="bg-blue-50">
+              <tr>
+                <th className="p-3 text-left text-blue-700 border-b">
+                  Order ID
+                </th>
+                <th className="p-3 text-left text-blue-700 border-b">
+                  Customer
+                </th>
+                <th className="p-3 text-left text-blue-700 border-b">Amount</th>
+                <th className="p-3 text-left text-blue-700 border-b">Status</th>
+                <th className="p-3 text-left text-blue-700 border-b">
+                  Created
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {newActivity.newOrders.map((order) => (
+                <tr
+                  key={order.id}
+                  className="hover:bg-blue-50 transition-colors duration-200"
+                >
+                  <td className="p-3 border-b">{order.id}</td>
+                  <td className="p-3 border-b">{order.user?.name || "-"}</td>
+                  <td className="p-3 border-b">Rs.{order.totalAmount}</td>
+                  <td className="p-3 border-b">{order.status}</td>
+                  <td className="p-3 border-b">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Full Width Chart */}
-      <Card>
-        <CardContent>
-          <p className="font-semibold">Monthly Revenue Comparison</p>
-          <LineChart width={1000} height={300} data={monthlyRevenue}>
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="bg-white rounded-2xl shadow-md p-6">
+          <h2 className="text-2xl font-semibold text-blue-700 mb-4">
+            Orders This Week
+          </h2>
+          <LineChart width={500} height={250} data={dailyOrders}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
+            <XAxis dataKey="day" />
             <YAxis />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="revenue2024" stroke="#8884d8" />
-            <Line type="monotone" dataKey="revenue2025" stroke="#82ca9d" />
+            <Line type="monotone" dataKey="count" stroke="#3B82F6" />
           </LineChart>
-        </CardContent>
-      </Card>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-md p-6">
+          <h2 className="text-2xl font-semibold text-blue-700 mb-4">
+            Customer Regions
+          </h2>
+          <BarChart width={500} height={250} data={customerMap}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="region" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="count" fill="#60A5FA" />
+          </BarChart>
+        </div>
+      </div>
+
+      {/* Monthly Revenue */}
+      <div className="bg-white rounded-2xl shadow-md p-6">
+        <h2 className="text-2xl font-semibold text-blue-700 mb-4">
+          Monthly Revenue Comparison
+        </h2>
+        <LineChart width={1000} height={300} data={monthlyRevenue}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="month" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Line type="monotone" dataKey="revenue2024" stroke="#3B82F6" />
+          <Line type="monotone" dataKey="revenue2025" stroke="#60A5FA" />
+        </LineChart>
+      </div>
     </div>
   );
-}
+};
+
+export default Dashboard;

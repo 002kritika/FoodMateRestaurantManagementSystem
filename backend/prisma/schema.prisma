@@ -28,6 +28,8 @@ model User {
   wishlist           Wishlist[]
   customers          Customer[]
   Payment Payment[]
+  reservations   Reservation[]
+
 }
 
 model Customer {
@@ -61,7 +63,21 @@ model Admin {
   name     String?
   password String
 }
+model Reservation {
+  id      Int      @id @default(autoincrement())
+  name    String
+  email   String
+  phone   String
+  date    String   // Store date as String (e.g., "2025-03-12")
+  time    String   // Store time as "HH:mm"
+  service String
+  status  String
+  user    User     @relation(fields: [userId], references: [id])
+  userId  Int      
+  @@unique([date, time]) // Prevent duplicate bookings for the same time slot
+  createdAt DateTime @default(now()) // <--- Add this line
 
+}
 model Menu {
   id            String        @id @default(uuid())
   name          String
@@ -143,6 +159,7 @@ model Payment {
   updatedAt       DateTime      @updatedAt
 }
 
+
 enum PaymentStatus {
   PENDING
   SUCCESS
@@ -166,6 +183,7 @@ enum OrderType {
 }
 enum OrderStatus {
   PENDING
+  PREPARED
   COMPLETED
   CANCELED
   DELIVERED

@@ -5,6 +5,7 @@ import {
   cancelOrder,
   getAllOrders,
   getCustomerOrders,
+  getUserOrders,
   placeOrder,
   updateOrderStatus,
 } from "../controller/orderController.js";
@@ -21,6 +22,7 @@ orderRouter.put(
   updateOrderStatus
 );
 orderRouter.patch("/cancel/:orderId", authenticateUser, cancelOrder);
+orderRouter.get("/myorders", authenticateUser, getUserOrders);
 // orderRouter.put("/update/:cartItemId", authenticateUser, updateCartItem);
 
 // orderRouter.put("/orders/:orderId/status", authenticateUser, updateOrderStatus);

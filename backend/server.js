@@ -6,7 +6,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
-import dashboardRoutes from "./routes/DashboardRoutes.js";
+import dashboardRouter from "./routes/DashboardRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
 
 import { PrismaClient } from "@prisma/client";
@@ -15,6 +15,7 @@ import cookieParser from "cookie-parser";
 import profileRouter from "./routes/profileRoutes.js";
 import orderRouter from "./routes/orderRoutes.js";
 import paymentRouter from "./routes/paymentRoutes.js";
+import reservationRouter from "./routes/reservationRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -39,10 +40,10 @@ app.use("/api/admin", adminRoutes, orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRouter);
 app.use("/api/customer", profileRoutes);
-app.use("/api/admin/dashboard", dashboardRoutes);
+app.use("/api/admin/dashboard", dashboardRouter);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/payment", paymentRouter);
-
+app.use("/api/reservations", reservationRouter);
 const createDefaultAdmin = async () => {
   try {
     const adminExists = await prisma.admin.findUnique({

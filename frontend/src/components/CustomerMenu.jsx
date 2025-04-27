@@ -12,35 +12,33 @@ const CustomerMenu = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
 
-  useEffect(() => {
-    if (selectedCategory === "ALL") {
-      fetchMenuItems();
-    } else {
-      fetchMenuItemsByCategory(selectedCategory);
-    }
-  }, [selectedCategory]);
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
+  // Function to fetch menu items based on selected category
   const fetchMenuItems = async () => {
+    console.log("Fetching menu items...");
     try {
-      const response = await axios.get("http://localhost:5000/api/users/menu");
+      let url = "http://localhost:5000/api/users/menu";
+      if (selectedCategory !== "ALL") {
+        url += `?category=${selectedCategory}`;
+      }
+
+      console.log(`API URL: ${url}`);
+      const response = await axios.get(url);
       setMenuItems(response.data);
+      console.log("Fetched menu items:", response.data);
     } catch (err) {
       console.error("Error fetching menu items:", err);
       setError("Failed to load menu items.");
     }
   };
 
-  const fetchMenuItemsByCategory = async (category) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:5000/api/users/menu?category=${category}`
-      );
-      setMenuItems(response.data);
-    } catch (err) {
-      console.error("Error fetching menu items by category:", err);
-      setError("Failed to load menu items.");
-    }
-  };
+  useEffect(() => {
+    fetchMenuItems();
+    setCurrentPage(1); // Reset to page 1 on category change
+  }, [selectedCategory]);
 
   const addToCart = async (menuId) => {
     try {
@@ -102,13 +100,22 @@ const CustomerMenu = () => {
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
   const handleCategoryChange = (category) => {
+    console.log(`Category selected: ${category}`);
     setSelectedCategory(category);
   };
 
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div className="min-h-screen bg-gray-100 relative">
-      {/* Background Image Banner */}
+      {/* Background Banner */}
       <div className="w-full h-[380px] relative overflow-hidden">
         <img
           src={background}
@@ -132,20 +139,20 @@ const CustomerMenu = () => {
         </div>
       </div>
 
-      {/* Display error if any */}
-      {error && <p className="text-red-500 text-center mb-6">{error}</p>}
+      {/* Error Message */}
+      {error && <p className="text-red-500 text-center mt-6">{error}</p>}
 
       {/* Category Filter */}
-      <div className="flex ml-10 mt-6 h-15">
+      <div className="flex ml-10 mt-6 space-x-4">
         {["ALL", "APPETIZER", "MAIN_COURSE", "DESSERT", "BEVERAGE"].map(
           (category) => (
             <button
               key={category}
               onClick={() => handleCategoryChange(category)}
-              className={`px-4 py-2 mx-2 text-black font-medium rounded cursor-pointer transition duration-200 ${
+              className={`relative px-4 py-2 text-sm sm:text-base font-semibold rounded-md transition-all duration-200 ${
                 selectedCategory === category
-                  ? "border-b-2 border-blue-500"
-                  : "hover:underline"
+                  ? "text-blue-600 after:absolute after:left-0 after:bottom-0 after:w-full after:h-0.5 after:bg-blue-600"
+                  : "text-gray-700 hover:text-blue-500"
               }`}
             >
               {category.replace("_", " ")}
@@ -154,9 +161,9 @@ const CustomerMenu = () => {
         )}
       </div>
 
-      {/* Menu Items Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl mx-auto mt-6">
-        {filteredItems.map((item) => (
+      {/* Menu Items */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl mx-auto mt-8">
+        {currentItems.map((item) => (
           <div key={item.id} className="bg-white rounded-lg shadow-md p-4">
             {item.imageUrl && (
               <img
@@ -171,7 +178,6 @@ const CustomerMenu = () => {
             <p className="text-gray-600 text-sm">{item.description}</p>
             <p className="text-lg font-semibold mt-2">Rs.{item.price}</p>
 
-            {/* Add to Cart */}
             <button
               onClick={() => addToCart(item.id)}
               className="mt-3 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2 w-full justify-center"
@@ -179,7 +185,6 @@ const CustomerMenu = () => {
               <FiShoppingCart /> Add to Cart
             </button>
 
-            {/* Add to Wishlist */}
             <button
               onClick={() => addToWishlist(item.id)}
               className="mt-2 px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600 flex items-center gap-2 w-full justify-center"
@@ -189,6 +194,39 @@ const CustomerMenu = () => {
           </div>
         ))}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center my-8 gap-2">
+          <button
+            onClick={() => paginate(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50"
+          >
+            Prev
+          </button>
+          {Array.from({ length: totalPages }, (_, index) => (
+            <button
+              key={index + 1}
+              onClick={() => paginate(index + 1)}
+              className={`px-4 py-2 rounded ${
+                currentPage === index + 1
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-300 text-gray-700 hover:bg-gray-400"
+              }`}
+            >
+              {index + 1}
+            </button>
+          ))}
+          <button
+            onClick={() => paginate(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

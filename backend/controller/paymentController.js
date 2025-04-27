@@ -83,7 +83,7 @@ export const handleSuccess = async (req, res) => {
         paymentMethod: "Esewa",
         address,
         orderType,
-        status: "CONFIRMED",
+        status: "PENDING",
         deliveryCharge: 150,
         items: {
           create: cartItems.map((item) => ({
@@ -108,6 +108,11 @@ export const handleSuccess = async (req, res) => {
           connect: { id: parsedUserId },
         },
       },
+    });
+
+    // ✅ Clear user's cart after order is placed
+    await prisma.cart.deleteMany({
+      where: { userId: parsedUserId },
     });
 
     res.redirect(
@@ -139,7 +144,7 @@ export const handleFailure = async (req, res) => {
     res.status(500).json({ error: "Failed to handle payment failure" });
   }
 };
-
+// GET ORDER DETAILS
 export const getOrderDetails = async (req, res) => {
   const { transaction_uuid, orderId } = req.query;
 
@@ -192,7 +197,26 @@ export const getOrderDetails = async (req, res) => {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    res.status(200).json({ order });
+    // ✨ Calculate subtotal manually from items
+    const subtotal = order.items.reduce(
+      (acc, item) => acc + item.price * item.quantity,
+      0
+    );
+
+    res.status(200).json({
+      order: {
+        id: order.id,
+        status: order.status,
+        paymentMethod: order.paymentMethod,
+        orderType: order.orderType,
+        address: order.address,
+        deliveryCharge: order.deliveryCharge,
+        subtotal, // 👈 newly calculated
+        totalAmount: order.totalAmount,
+        items: order.items,
+        user: order.user,
+      },
+    });
   } catch (error) {
     console.error("❌ Failed to fetch order details:", error);
     res.status(500).json({ error: "Internal Server Error" });
