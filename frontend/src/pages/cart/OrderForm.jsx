@@ -120,7 +120,7 @@ const OrderForm = ({ cartItems, totalAmount }) => {
       <select
         value={orderType}
         onChange={(e) => setOrderType(e.target.value)}
-        className="w-full px-4 py-2 mb-4 border rounded-md"
+        className="w-full px-4 py-2 mb-4 border-2 bg-white text-black rounded-md"
       >
         <option value="DELIVERY">Delivery</option>
         <option value="PICKUP">Pickup</option>
@@ -134,7 +134,7 @@ const OrderForm = ({ cartItems, totalAmount }) => {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="Enter your delivery address"
-            className="w-full px-4 py-2 mb-4 border rounded-md"
+            className="w-full px-4 py-2 mb-4 bg-white text-black border-2 rounded-md"
             required
           />
           <div className="text-lg font-semibold mb-4">
@@ -147,7 +147,7 @@ const OrderForm = ({ cartItems, totalAmount }) => {
       <select
         value={paymentMethod}
         onChange={(e) => setPaymentMethod(e.target.value)}
-        className="w-full px-4 py-2 mb-4 border rounded-md"
+        className="w-full px-4 py-2 mb-4 border-2 rounded-md text-black bg-white"
         required
       >
         <option value="">Select Payment Method</option>

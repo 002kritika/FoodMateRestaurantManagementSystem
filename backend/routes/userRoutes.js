@@ -17,7 +17,7 @@ const userRouter = express.Router();
 
 userRouter.post("/customer/login", customerLogin);
 userRouter.post("/customer/register", customerRegister);
-userRouter.get("/verify-email/:token", verifyEmail);
+userRouter.put("/verify-email/:token", verifyEmail);
 userRouter.post("/forgot-password", sendResetPasswordEmail);
 userRouter.post("/staff/login", staffLogin);
 userRouter.post("/staff/register", staffRegister);

@@ -8,7 +8,7 @@ export default function Hero() {
       <img
         src={background}
         className="absolute top-0 left-0 w-full h-full object-cover"
-        style={{ opacity: 0.5 }}
+        style={{ opacity: 0.8 }}
         alt="Restaurant background"
       />
 

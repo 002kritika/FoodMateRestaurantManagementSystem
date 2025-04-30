@@ -62,59 +62,59 @@ export default function ReserveNow() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]">
-      <div className="max-w-2xl mx-auto p-8 bg-white shadow-lg rounded-lg ">
-        <h2 className="text-4xl font-semibold text-center text-[#bc0030] mb-6">
-          🍽️ Book a Table
+    <div className="min-h-screen m-8 bg-white">
+      <div className="max-w-2xl mx-auto p-8 bg-white shadow-lg rounded-lg border border-[#8B0000]">
+        <h2 className="text-4xl font-semibold text-center text-[#8B0000] mb-6">
+          Book a Table
         </h2>
         <form onSubmit={handleReservationSubmit}>
           <div className="mb-6">
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-[#8B0000] font-medium mb-2">
               What's your name?
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border-2 bg-white border-gray-300 px-4 py-3 rounded-md focus:ring-2 focus:ring-[#FFD700] transition duration-300"
+              className="w-full border-2 text-black bg-white border-black px-4 py-3 rounded-md focus:ring-2 focus:ring-[#FFD700] transition duration-300"
               required
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-[#8B0000] font-medium mb-2">
               What's your Email?
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border-2 bg-white border-gray-300 px-4 py-3 rounded-md focus:ring-2 focus:ring-[#FFD700] transition duration-300"
+              className="w-full border-2 text-black bg-white border-black px-4 py-3 rounded-md focus:ring-2 focus:ring-[#FFD700] transition duration-300"
               required
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-[#8B0000] font-medium mb-2">
               What's your Phone Number?
             </label>
             <input
               type="text"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full border-2 border-gray-300 bg-white px-4 py-3 rounded-md focus:ring-2 focus:ring-[#FFD700] transition duration-300"
+              className="w-full border-2 text-black border-black bg-white px-4 py-3 rounded-md focus:ring-2 focus:ring-[#FFD700] transition duration-300"
               required
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-[#8B0000] font-medium mb-2">
               Time slot
             </label>
             <select
               value={timeSlot}
               onChange={(e) => setTimeSlot(e.target.value)}
-              className="w-full border-2 bg-white border-gray-300 px-4 py-3 rounded-md focus:ring-2 focus:ring-[#FFD700] transition duration-300"
+              className="w-full border-2 text-black bg-white border-black px-4 py-3 rounded-md focus:ring-2 focus:ring-[#FFD700] transition duration-300"
               required
             >
               <option value="">Select a time slot</option>
@@ -127,13 +127,13 @@ export default function ReserveNow() {
           </div>
 
           <div className="mb-6">
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-[#8B0000] font-medium mb-2">
               Table Size
             </label>
             <select
               value={service}
               onChange={(e) => setService(e.target.value)}
-              className="w-full border-2 border-gray-300 px-4 py-3 bg-white rounded-md focus:ring-2 focus:ring-[#FFD700] transition duration-300"
+              className="w-full border-2 text-black border-black px-4 py-3 bg-white rounded-md focus:ring-2 focus:ring-[#FFD700] transition duration-300"
               required
             >
               <option value="" disabled>
@@ -148,14 +148,14 @@ export default function ReserveNow() {
           </div>
 
           <div className="mb-6">
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-[#8B0000] font-medium mb-2">
               Reservation Date
             </label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full border-2 bg-slate-50 border-gray-300 px-4 py-3 rounded-md focus:ring-2 focus:ring-[#FFD700] transition duration-300"
+              className="w-full border-2 bg-slate-50 text-black border-black px-4 py-3 rounded-md focus:ring-2 focus:ring-[#FFD700] transition duration-300"
               required
             />
           </div>
@@ -167,9 +167,9 @@ export default function ReserveNow() {
 
           <button
             type="submit"
-            className="border-2 border-[#FFD700] bg-[#bc0030] text-white font-medium py-3 rounded-md hover:bg-[#a80028] focus:ring-2 focus:ring-[#FFD700] transition duration-300 flex items-center gap-2"
+            className="w-full border-2 border-[#8B0000] bg-[#8B0000] text-white font-medium py-4 rounded-md hover:bg-[#a80028] focus:ring-2 focus:ring-[#FFD700] transition duration-300 text-lg"
           >
-            Reserve
+            Reserve Now
           </button>
         </form>
       </div>

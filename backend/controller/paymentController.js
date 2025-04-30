@@ -222,3 +222,68 @@ export const getOrderDetails = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+// cancelPayment Controller
+export const cancelPayment = async (req, res) => {
+  const { transaction_uuid } = req.query;
+
+  if (!transaction_uuid) {
+    return res.status(400).json({ error: "Transaction UUID is required" });
+  }
+
+  try {
+    // Optionally, update payment status in the database to 'CANCELLED'
+    await prisma.payment.update({
+      where: { transactionUuid: transaction_uuid },
+      data: { status: "CANCELLED" },
+    });
+
+    // Optionally, you can also log the cancellation in your database if necessary
+
+    // Return success message
+    res.status(200).json({ message: "Payment cancellation successful" });
+  } catch (error) {
+    console.error("❌ Failed to cancel payment:", error);
+    res.status(500).json({ error: "Failed to cancel payment" });
+  }
+};
+
+// // CANCEL PAYMENT
+// export const cancelPayment = async (req, res) => {
+//   try {
+//     const { transaction_uuid } = req.query;
+
+//     if (!transaction_uuid) {
+//       return res.status(400).json({ error: "Missing transaction UUID" });
+//     }
+
+//     // Find the payment using transaction_uuid
+//     const payment = await prisma.payment.findUnique({
+//       where: { transactionUuid: transaction_uuid },
+//       include: { order: true },
+//     });
+
+//     if (!payment) {
+//       return res.status(404).json({ error: "Payment not found" });
+//     }
+
+//     // Update payment status to "CANCELLED"
+//     await prisma.payment.update({
+//       where: { transactionUuid: transaction_uuid },
+//       data: { status: "CANCELLED" },
+//     });
+
+//     // Update order status to "CANCELLED" if there is an associated order
+//     if (payment.order) {
+//       await prisma.order.update({
+//         where: { id: payment.order.id },
+//         data: { status: "CANCELLED" },
+//       });
+//     }
+
+//     res.redirect("http://localhost:3000/customer/payment/cancel"); // frontend cancel page
+//   } catch (error) {
+//     console.error("❌ Error cancelling payment:", error);
+//     res.status(500).json({ error: "Failed to cancel payment" });
+//   }
+// };

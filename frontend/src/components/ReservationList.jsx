@@ -27,7 +27,7 @@ const ReservationList = () => {
 
       try {
         const res = await axios.get(
-          "http://localhost:5000/api/reservations/get", // Update to reservations endpoint
+          "http://localhost:3000/api/reservations/get", // Update to reservations endpoint
           {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
@@ -74,7 +74,7 @@ const ReservationList = () => {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-        🍽️ Your Reservations
+        Reservations List
       </h2>
 
       {/* Filters */}
@@ -84,13 +84,13 @@ const ReservationList = () => {
           placeholder="Search by service..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full sm:w-1/2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:outline-none"
+          className="w-full sm:w-1/2 px-4 py-2 border bg-white text-black border-gray-300 rounded-lg focus:ring-blue-500 focus:outline-none"
         />
         <input
           type="date"
           value={dateFilter}
           onChange={(e) => setDateFilter(e.target.value)}
-          className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:outline-none"
+          className="w-full sm:w-1/3 px-4 py-2 border bg-white border-gray-300 rounded-lg focus:ring-blue-500 focus:outline-none"
         />
       </div>
 

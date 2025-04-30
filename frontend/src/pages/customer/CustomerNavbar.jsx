@@ -34,7 +34,7 @@ export default function CustomerNavbar() {
 
       // Fetch user profile name
       axios
-        .get("http://localhost:5000/api/users/profile/basic", {
+        .get("http://localhost:3000/api/users/profile/basic", {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         })

@@ -1,9 +1,9 @@
+import nodemailer from "nodemailer";
 import { PrismaClient } from "@prisma/client";
 import { DateTime } from "luxon";
 
 const prisma = new PrismaClient();
 
-// Available time slots (24-hour format in Nepal Time)
 const availableTimeSlots = [
   "10:00",
   "11:00",
@@ -16,37 +16,63 @@ const availableTimeSlots = [
   "18:00",
 ];
 
-// Convert UTC time to Nepal Time (Asia/Kathmandu)
 const convertToNepalDate = (date) => {
-  return DateTime.fromJSDate(date, { zone: "Asia/Kathmandu" }).toISODate(); // return as YYYY-MM-DD
+  return DateTime.fromJSDate(date, { zone: "Asia/Kathmandu" }).toISODate();
 };
 
-// Helper function to check if the requested time slot is available
 const isAvailableTimeSlot = async (reservationDate, requestedTime) => {
-  const timeString = requestedTime;
-  console.log("🕒 Checking availability for:", timeString);
-
-  // Convert date to string in format YYYY-MM-DD
   const dateString = convertToNepalDate(reservationDate);
 
-  // Check if the requested time slot already exists in the database for the same date
   const existingReservation = await prisma.reservation.findFirst({
     where: {
-      date: dateString, // Compare the date as a string
-      time: timeString,
+      date: dateString,
+      time: requestedTime,
     },
   });
 
   return !existingReservation;
 };
 
-// ✅ Create Reservation (requires authentication)
+const sendConfirmationEmail = async (name, email, reservationDetails) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: "your-email@gmail.com",
+      to: email,
+      subject: "Reservation Confirmed Successfully",
+      html: `
+        <h1>Reservation Confirmed</h1>
+        <p>Dear ${name},</p>
+        <p>Your reservation has been successfully made with the following details:</p>
+        <ul>
+          <li>Date: ${reservationDetails.date}</li>
+          <li>Time: ${reservationDetails.time}</li>
+          <li>Service: ${reservationDetails.service}</li>
+        </ul>
+        <p>Thank you for choosing us!</p>
+        <p>Best regards,<br>Beauty Galore Salon</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("Confirmation email sent successfully");
+  } catch (error) {
+    console.error("Error sending confirmation email:", error);
+  }
+};
+
 const createReservation = async (req, res) => {
   try {
     const { name, email, phone, date, service, timeSlot } = req.body;
     const userId = req.user?.id;
 
-    // Validate that the timeSlot is within the available time slots
     if (!availableTimeSlots.includes(timeSlot)) {
       return res
         .status(400)
@@ -70,19 +96,15 @@ const createReservation = async (req, res) => {
     }).startOf("day");
     const todayNepal = DateTime.now().setZone("Asia/Kathmandu").startOf("day");
 
-    // Check for past date
     if (reservationDate < todayNepal) {
       return res.status(400).json({
         error: "You cannot book a reservation for a past date.",
       });
     }
 
-    const requestedTime = timeSlot;
-
-    // Check if the requested time slot is available
     const isAvailable = await isAvailableTimeSlot(
       reservationDate.toJSDate(),
-      requestedTime
+      timeSlot
     );
 
     if (!isAvailable) {
@@ -97,12 +119,18 @@ const createReservation = async (req, res) => {
         name,
         email,
         phone,
-        date: reservationDate.toISODate(), // Store in YYYY-MM-DD
-        time: requestedTime,
+        date: reservationDate.toISODate(),
+        time: timeSlot,
         service,
         userId,
-        status: "Pending", // Default status
+        status: "Pending",
       },
+    });
+
+    await sendConfirmationEmail(name, email, {
+      date: reservationDate.toISODate(),
+      time: timeSlot,
+      service,
     });
 
     res
@@ -115,9 +143,6 @@ const createReservation = async (req, res) => {
       .json({ error: "Failed to book reservation", details: error.message });
   }
 };
-
-// ✅ Cancel Reservation (requires authentication)
-// ✅ Cancel Reservation (within 2 hours of booking)
 
 const cancelReservation = async (req, res) => {
   try {
@@ -138,6 +163,12 @@ const cancelReservation = async (req, res) => {
         .json({ error: "You can only cancel your own reservations" });
     }
 
+    if (reservation.status !== "Pending") {
+      return res
+        .status(400)
+        .json({ error: "Only pending reservations can be cancelled" });
+    }
+
     const createdAt = DateTime.fromJSDate(reservation.createdAt);
     const now = DateTime.local();
     const hoursSinceBooking = now.diff(createdAt).as("hours");
@@ -148,10 +179,9 @@ const cancelReservation = async (req, res) => {
       });
     }
 
-    // Update status to "Cancelled" instead of deleting the reservation
     await prisma.reservation.update({
       where: { id: Number(id) },
-      data: { status: "Cancelled" }, // Change status instead of deletion
+      data: { status: "Cancelled" },
     });
 
     return res
@@ -166,7 +196,7 @@ const cancelReservation = async (req, res) => {
 const getUserReservations = async (req, res) => {
   try {
     const userId = req.user?.id;
-    console.log("userID", userId);
+
     if (!userId) {
       return res.status(400).json({ error: "User not authenticated" });
     }
@@ -208,7 +238,7 @@ const getAllUserReservations = async (req, res) => {
 const confirmReservation = async (req, res) => {
   try {
     const { id } = req.params;
-    const adminId = req.adminId; // Admin's ID from the request
+    const adminId = req.adminId;
 
     if (!adminId) {
       return res.status(403).json({ message: "Access denied" });
@@ -222,14 +252,12 @@ const confirmReservation = async (req, res) => {
       return res.status(404).json({ error: "Reservation not found" });
     }
 
-    // Check if the status is "Pending"
     if (reservation.status !== "Pending") {
       return res
         .status(400)
         .json({ error: "Only pending reservations can be confirmed" });
     }
 
-    // Update the status to "Confirmed"
     const updatedReservation = await prisma.reservation.update({
       where: { id: Number(id) },
       data: { status: "Confirmed" },

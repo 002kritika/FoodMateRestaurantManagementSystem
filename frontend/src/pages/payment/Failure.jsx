@@ -11,7 +11,7 @@ const Failure = () => {
         There was an error processing your payment. Please try again.
       </p>
       <button
-        onClick={() => navigate("/")}
+        onClick={() => navigate("/customer")}
         className="bg-blue-600 text-white px-6 py-2 rounded"
       >
         Go to Home

@@ -7,7 +7,7 @@ export default function CustomerLayout() {
   return (
     <>
       <CustomerNavbar />
-      <div className="pt-20">
+      <div className="pt-20 bg-slate-50">
         <Outlet />
       </div>
 

@@ -44,11 +44,11 @@ export default function LoginPage() {
     const errors = Validation(userInput);
     setErrors(errors);
 
-    if (Object.keys(errors).length > 0) {
-      toast.error("Error in form!");
-    } else {
-      toast.success("Validation Passed!");
-    }
+    // if (Object.keys(errors).length > 0) {
+    //   toast.error("Error in form!");
+    // } else {
+    //   toast.success("Validation Passed!");
+    // }
 
     return errors;
   }
@@ -79,13 +79,13 @@ export default function LoginPage() {
         navigate("/customer");
       }
     } catch (error) {
-      toast.error(error.response?.data?.error || "Login failed");
+      toast.error(error.response?.data?.error || "Invalid email or password");
       console.error(error);
     }
   };
 
   return (
-    <div className="min-h-[80vh] flex flex-col bg-white  items-center">
+    <div className="min-h-[80vh] flex flex-col bg-white items-center text-black">
       <div className="card bg-white m-8 shrink-0 shadow-2xl w-[24rem]">
         <form className="card-body" onSubmit={login}>
           <button className="btn btn-sm btn-square btn-ghost absolute right-2 top-2">
@@ -94,7 +94,7 @@ export default function LoginPage() {
           <h1 className="font-bold text-3xl text-black">Login to Food Mate</h1>
           <div className="form-control">
             <label className="label">
-              <span className="label-text">Email</span>
+              <span className="label-text text-black">Email</span>
             </label>
             <input
               name="email"
@@ -106,28 +106,32 @@ export default function LoginPage() {
               onChange={handleChange}
               onBlur={handleBlur}
             />
-            {errors.email && <p className="error">{errors.email}</p>}
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
           </div>
           <div className="form-control">
             <label className="label">
-              <span className="label-text">Password</span>
+              <span className="label-text text-black">Password</span>
             </label>
             <input
               name="password"
               type="password"
               placeholder="password"
               required
-              className="input input-bordered bg-[#D9D9D9]"
+              className="input input-bordered bg-[#D9D9D9] text-black"
               value={userInput.password}
               onChange={handleChange}
               onBlur={handleBlur}
             />
-            {errors.password && <p className="error">{errors.password}</p>}
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
 
             <label className="label">
               <a
                 href="/forget-password"
-                className="label-text-alt link link-hover"
+                className="label-text-alt link link-hover text-black"
               >
                 Forgot password?
               </a>
@@ -141,7 +145,7 @@ export default function LoginPage() {
               Login
             </button>
           </div>
-          <div>
+          <div className="mt-4 text-black">
             Don't have an account?{" "}
             <span className="font-semibold ">
               <Link to="/signup" className="link-hover text-black">

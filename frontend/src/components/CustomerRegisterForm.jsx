@@ -12,7 +12,7 @@ export default function CustomerRegisterForm() {
     if (!userInput.email) {
       errors.email = "Email is required";
     } else if (!emailRegex.test(userInput.email)) {
-      errors.email = "Email is invalid";
+      errors.email = "Please enter a valid email address ";
     }
 
     if (!userInput.password) {
@@ -75,7 +75,7 @@ export default function CustomerRegisterForm() {
     <form className="card-body " onSubmit={handleSignup}>
       {/* <div className="text-2xl font-bold text-center text-black "> */}
       <h1 className="text-2xl font-bold text-center text-black ">
-        Customer Register
+        Register here
       </h1>
       {/* </div> */}
       <div className="form-control">

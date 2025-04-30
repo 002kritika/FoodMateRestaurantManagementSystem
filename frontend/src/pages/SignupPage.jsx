@@ -1,4 +1,4 @@
-import Tab from "../components/Tab";
+import CustomerRegisterForm from "../components/CustomerRegisterForm";
 
 export default function SignupPage() {
   return (
@@ -10,7 +10,7 @@ export default function SignupPage() {
         >
           ✕
         </button>
-        <Tab />
+        <CustomerRegisterForm />
       </div>
     </div>
   );

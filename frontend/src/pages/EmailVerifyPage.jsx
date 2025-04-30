@@ -12,7 +12,7 @@ export default function EmailVerifyPage() {
     const verifyEmail = async () => {
       try {
         // Send GET request to the backend with the token
-        const response = await axios.get(
+        const response = await axios.put(
           `http://localhost:5000/api/users/verify-email/${token}`
         );
         console.log("Token being sent:", token);
@@ -28,7 +28,7 @@ export default function EmailVerifyPage() {
         if (error.response) {
           const message = error.response.data.message;
           if (message === "user already verified.") {
-            setVerificationStatus("User already verified.");
+            setVerificationStatus("User is now verified.");
           } else if (message === "Invalid or expired token.") {
             setVerificationStatus("Invalid or expired token.");
           } else {

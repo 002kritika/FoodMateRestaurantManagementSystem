@@ -41,7 +41,7 @@ const ReservationCancel = ({
 
     try {
       const res = await axios.put(
-        `http://localhost:5000/api/reservation/${reservationId}/cancel`, // Updated endpoint for reservations
+        `http://localhost:3000/api/reservations/${reservationId}/cancel`, // Updated endpoint for reservations
         {},
         {
           headers: { Authorization: `Bearer ${token}` },

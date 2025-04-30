@@ -135,48 +135,38 @@ const customerRegister = async (req, res) => {
 
 // Verify Email
 const verifyEmail = async (req, res) => {
-  const { token } = req.params; // Extract token from the URL
+  const { token } = req.params;
 
   console.log("Received token:", token); // Log the received token for debugging
   try {
     // Check if the user exists and matches conditions
     const matchingUser = await prisma.user.findFirst({
       where: {
-        verificationToken: null,
-        isVerified: true,
+        verificationToken: token,
+        isVerified: false,
       },
     });
 
-    if (matchingUser) {
+    if (!matchingUser) {
       console.log("No matching user found or user already verified.");
-      res.status(400).json({ message: "user already verified." });
+      res.status(400).json({ message: "Invalid or expired token." });
       return;
     }
-
     console.log("Matching user found:", matchingUser);
 
     // Look for the user by verificationToken and update if found
-    const user = await prisma.user.updateMany({
-      where: {
-        verificationToken: token, // Find the user by the token
-        isVerified: false, // Make sure the user has not already been verified
-      },
-      data: {
-        isVerified: true, // Set the user as verified
-        verificationToken: null, // Remove the verification token after success
-      },
+    const user = await prisma.user.update({
+      where: { id: matchingUser.id },
+      data: { isVerified: true, verificationToken: null },
     });
 
-    if (user.count > 0) {
-      console.log("User verified successfully.");
-      res.status(200).json({ message: "Email verified successfully!" });
-    } else {
-      console.log("No matching token or already verified.");
-      res.status(400).json({ message: "Invalid or expired token." });
-    }
+    console.log("User verified successfully:", user);
+    res.status(200).json({ message: "Email verified successfully!" });
   } catch (error) {
     console.error("Error during verification:", error);
-    res.status(500).json({ message: "Verification failed." });
+    res
+      .status(500)
+      .json({ message: "Verification failed. Please try again later." });
   }
 };
 

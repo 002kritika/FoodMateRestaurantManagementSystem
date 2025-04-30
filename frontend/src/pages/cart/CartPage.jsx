@@ -20,7 +20,9 @@ const CartPage = () => {
     setLoading(true);
     try {
       const token = Cookies.get("token");
-      if (!token) throw new Error("Unauthorized: Please log in first.");
+      if (!token) {
+        throw new Error("Unauthorized: Please log in first.");
+      }
 
       const response = await axios.get("http://localhost:5000/api/cart", {
         headers: { Authorization: `Bearer ${token}` },
@@ -30,13 +32,23 @@ const CartPage = () => {
       setCartItems(response.data);
       setError(null);
     } catch (err) {
-      const errorMessage =
+      const status = err.response?.status;
+      const message =
         err.response?.data?.message || err.message || "Failed to fetch cart";
-      setError(errorMessage);
-      toast.error(errorMessage);
-      if (err.response?.status === 401) {
-        Cookies.remove("token");
-        navigate("/login");
+
+      if (status === 404 && message.toLowerCase().includes("empty")) {
+        // Cart empty case
+        setCartItems([]);
+        setError(null);
+      } else {
+        // Other real errors
+        setError(message);
+        toast.error(message);
+
+        if (status === 401) {
+          Cookies.remove("token");
+          navigate("/login");
+        }
       }
     } finally {
       setLoading(false);
@@ -89,13 +101,9 @@ const CartPage = () => {
     0
   );
 
-  if (loading) return <p className="text-center mt-10">Loading cart...</p>;
-  if (error)
-    return (
-      <p className="text-center text-red-500 mt-10">
-        {typeof error === "string" ? error : JSON.stringify(error)}
-      </p>
-    );
+  if (loading) {
+    return <p className="text-center mt-10">Loading cart...</p>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">

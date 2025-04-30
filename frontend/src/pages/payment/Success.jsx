@@ -28,7 +28,6 @@ const Success = () => {
         if (res.data && res.data.order) {
           setPaymentStatus("✅ Payment successful!");
           setOrderDetails(res.data.order);
-
           localStorage.removeItem("cart");
         } else {
           throw new Error("Order details not found");
@@ -50,10 +49,9 @@ const Success = () => {
   }, [transactionUuid, orderId]);
 
   if (!orderDetails) {
-    return null; // or show a fallback if needed
+    return null;
   }
 
-  // Calculate correct total based on order type
   const calculateTotalAmount = () => {
     const subtotal = orderDetails.subtotal || 0;
     const deliveryCharge =
@@ -67,81 +65,67 @@ const Success = () => {
   const correctedTotalAmount = calculateTotalAmount();
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-10">
-      <div className="bg-white shadow-xl rounded-2xl p-8 border border-green-200">
-        <h1 className="text-3xl font-bold text-green-600 mb-6 text-center">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-12">
+      <div className="bg-white shadow-2xl rounded-3xl p-10 max-w-3xl w-full animate-fade-in">
+        <h1 className="text-4xl font-extrabold text-red-600 text-center mb-8">
           🎉 Payment Successful!
         </h1>
 
         {loading && (
-          <p className="text-blue-500 text-center text-lg animate-pulse">
-            Processing your payment...
-          </p>
+          <div className="flex justify-center">
+            <p className="text-red-400 text-lg animate-pulse">
+              Processing your payment...
+            </p>
+          </div>
         )}
 
         {error && (
-          <p className="text-red-500 text-center text-lg">❌ Error: {error}</p>
+          <div className="flex justify-center">
+            <p className="text-red-600 text-lg font-semibold">❌ {error}</p>
+          </div>
         )}
 
         {!loading && !error && orderDetails && (
           <>
-            <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded mb-6">
-              <p className="font-semibold">{paymentStatus}</p>
+            <div className="bg-red-100 border border-red-300 text-red-800 p-4 rounded-lg text-center mb-8 font-medium">
+              {paymentStatus}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-4 rounded-md shadow-sm">
-                <p className="text-gray-600">
-                  <strong>Transaction UUID:</strong>
-                  <br />
-                  <span className="break-all text-sm text-gray-800">
-                    {transactionUuid}
-                  </span>
-                </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <InfoCard title="Transaction UUID" value={transactionUuid} />
+                <InfoCard title="Order ID" value={orderDetails.id} />
+                <InfoCard title="Status" value={orderDetails.status} />
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-md shadow-sm">
-                <p className="text-gray-600">
-                  <strong>Order ID:</strong> {orderDetails.id}
-                </p>
-                <p className="text-gray-600">
-                  <strong>Status:</strong> {orderDetails.status}
-                </p>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-md shadow-sm">
-                <p className="text-gray-600">
-                  <strong>Payment Method:</strong> {orderDetails.paymentMethod}
-                </p>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-md shadow-sm space-y-2">
-                <p className="text-gray-600">
-                  <strong>Order Type:</strong> {orderDetails.orderType}
-                </p>
-
-                <p className="text-gray-600">
-                  <strong>Subtotal:</strong> Rs.{orderDetails.subtotal}
-                </p>
-
-                {/* Show delivery charge only if delivery order */}
+              <div className="space-y-4">
+                <InfoCard
+                  title="Payment Method"
+                  value={orderDetails.paymentMethod}
+                />
+                <InfoCard title="Order Type" value={orderDetails.orderType} />
+                <InfoCard
+                  title="Subtotal"
+                  value={`Rs.${orderDetails.subtotal}`}
+                />
                 {orderDetails.orderType === "DELIVERY" && (
-                  <p className="text-gray-600">
-                    <strong>Delivery Charge:</strong> Rs.
-                    {orderDetails.deliveryCharge}
-                  </p>
+                  <InfoCard
+                    title="Delivery Charge"
+                    value={`Rs.${orderDetails.deliveryCharge}`}
+                  />
                 )}
-
-                <p className="text-gray-800 font-bold">
-                  <strong>Total Amount:</strong> Rs.{correctedTotalAmount}
-                </p>
+                <InfoCard
+                  title="Total Amount"
+                  value={`Rs.${correctedTotalAmount}`}
+                  highlight
+                />
               </div>
             </div>
 
-            <div className="mt-8 text-center">
+            <div className="mt-10 flex justify-center">
               <button
                 onClick={() => navigate("/customer")}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition duration-300"
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg transition-all duration-300"
               >
                 Back to Home
               </button>
@@ -152,5 +136,21 @@ const Success = () => {
     </div>
   );
 };
+
+// Reusable card component
+const InfoCard = ({ title, value, highlight = false }) => (
+  <div className="bg-gray-50 rounded-xl p-4 shadow-sm">
+    <p className="text-sm text-gray-500">{title}</p>
+    <p
+      className={`mt-1 break-words ${
+        highlight
+          ? "text-lg font-bold text-red-600"
+          : "text-base font-semibold text-gray-800"
+      }`}
+    >
+      {value}
+    </p>
+  </div>
+);
 
 export default Success;

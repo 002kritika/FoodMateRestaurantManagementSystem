@@ -183,45 +183,7 @@ export const getLatestOrders = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch latest orders" });
   }
 };
-export const cancelOrder = async (req, res) => {
-  const { orderId } = req.params;
-  const userId = req.user?.id;
 
-  try {
-    const order = await prisma.order.findUnique({
-      where: { id: parseInt(orderId) },
-    });
-
-    if (!order) return res.status(404).json({ message: "Order not found" });
-
-    if (order.userId !== userId) {
-      return res.status(403).json({ message: "Unauthorized" });
-    }
-
-    // Check if the order type is "PICKUP"
-    if (order.orderType !== "PICKUP") {
-      return res
-        .status(400)
-        .json({ message: "Only pickup orders can be canceled" });
-    }
-
-    if (order.status === "CANCELED") {
-      return res.status(400).json({ message: "Order already canceled" });
-    }
-
-    const updatedOrder = await prisma.order.update({
-      where: { id: parseInt(orderId) },
-      data: { status: "CANCELED" },
-    });
-
-    return res
-      .status(200)
-      .json({ message: "Order canceled", order: updatedOrder });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
 export const getUserOrders = async (req, res) => {
   try {
     const userId = req.user.id; // directly from middleware
@@ -242,5 +204,93 @@ export const getUserOrders = async (req, res) => {
   } catch (error) {
     console.error("Error fetching user orders:", error);
     res.status(500).json({ message: "Failed to fetch orders" });
+  }
+};
+
+// Fetch details of all items in an order
+export const getOrderItems = async (req, res) => {
+  try {
+    const { orderId } = req.params; // Extract orderId from request params
+
+    // Find the order with its associated items and menu details
+    const order = await prisma.order.findUnique({
+      where: { id: parseInt(orderId) },
+      include: {
+        items: {
+          include: {
+            menu: true, // Include the menu details (name, price, etc.)
+          },
+        },
+      },
+    });
+
+    // If order not found, return error
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Return the order with item details
+    res.status(200).json({ orderItems: order.items });
+  } catch (error) {
+    console.error("Error fetching order items:", error);
+    res.status(500).json({ message: "Failed to fetch order items" });
+  }
+};
+
+export const cancelOrder = async (req, res) => {
+  const { orderId } = req.params;
+  const userId = req.user?.id;
+
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: parseInt(orderId) },
+    });
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.userId !== userId) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    if (order.status === "CANCELED") {
+      return res.status(400).json({ message: "Order already canceled" });
+    }
+
+    const orderCreatedTime = new Date(order.createdAt);
+    const currentTime = new Date();
+    const timeDiffInMinutes = (currentTime - orderCreatedTime) / (1000 * 60); // milliseconds to minutes
+
+    // Apply time-based restrictions
+    if (order.paymentMethod === "ESEWA" && order.orderType === "PICKUP") {
+      if (timeDiffInMinutes > 10) {
+        return res
+          .status(400)
+          .json({
+            message: "Cannot cancel after 10 minutes for paid pickup orders",
+          });
+      }
+    } else if (order.paymentMethod === "CASH_ON_DELIVERY") {
+      if (timeDiffInMinutes > 30) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Cannot cancel after 30 minutes for cash on delivery orders",
+          });
+      }
+    }
+
+    // Update order status to canceled
+    const updatedOrder = await prisma.order.update({
+      where: { id: parseInt(orderId) },
+      data: { status: "CANCELED" },
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Order canceled successfully", order: updatedOrder });
+  } catch (error) {
+    console.error("Cancel Order Error:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };
